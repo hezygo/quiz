@@ -20,13 +20,11 @@
 
 ## 2. 项目 Cloudflare 配置（已就绪）
 
-### 2.1 `public/_redirects` — SPA 路由回退
+### 2.1 SPA 路由 — 不需要 `_redirects`
 
-```
-/*    /index.html   200
-```
+刷题助手使用 Vue Router Hash 模式 (`createWebHashHistory`)，所有路由通过 URL hash 实现（如 `/#/quiz`）。hash 部分不会发送到服务器，服务器始终只收到 `/` 或 `/index.html` 请求，因此**不需要** SPA fallback 的 `_redirects` 规则。
 
-刷题助手使用 Vue Router Hash 模式 (`createWebHashHistory`)，理论上不需要 fallback。但加上 `_redirects` 保证即使直接访问子路径也能正常加载。
+如果添加 `/* /index.html 200` 反而会在 Workers 部署时触发 Cloudflare 的无限循环检测报错。（Pages 部署则有内置的 SPA 兼容处理，即使不加也没问题。）
 
 ### 2.2 `public/_headers` — 静态资源长缓存
 
@@ -185,7 +183,6 @@ Cloudflare Pages 构建环境：
 | `dist/assets/index-XXXXXX.js` | 469 KB | Vue 3 + Router + xlsx + 业务逻辑 |
 | `dist/assets/index-XXXXXX.css` | 23 KB | Tailwind CSS |
 | `dist/assets/excel-worker-XXXXXX.js` | 335 KB | Web Worker (xlsx 解析逻辑) |
-| `dist/_redirects` | 58 B | SPA 路由规则 |
 | `dist/_headers` | 65 B | 缓存策略 |
 
 首次加载 ~245KB（gzip），后续页面切换 0 网络请求（纯 SPA + Hash 路由）。
@@ -196,9 +193,7 @@ Cloudflare Pages 构建环境：
 
 **Q: `vite: not found`** — 检查构建命令是否为 `npm run build`（不是直接 `vite build`）
 
-**Q: `Out of memory`** — Node 版本过旧或构建资源不足，设置环境变量 `NODE_OPTIONS: --max-old-space-size=512`
-
-**Q: `_redirects not found in dist/`** — 确认 `public/_redirects` 文件存在。Vite 构建自动把 `public/` 下的文件复制到 `dist/`。
+**Q: `out of memory`** — Node 版本过旧或构建资源不足，设置环境变量 `NODE_OPTIONS: --max-old-space-size=512`
 
 ---
 

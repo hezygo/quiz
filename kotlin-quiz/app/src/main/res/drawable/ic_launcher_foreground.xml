@@ -5,19 +5,79 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 圆形底（淡灰） -->
-    <path
-        android:fillColor="#F3F4F6"
-        android:pathData="M54,8 C76,8 94,26 94,48 C94,70 76,88 54,88 C32,88 14,70 14,48 C14,26 32,8 54,8 Z" />
-
-    <!-- 内部圆（白） -->
+    <!-- 超大圆角方形底（白） -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,16 C72,16 86,30 86,48 C86,66 72,80 54,80 C36,80 22,66 22,48 C22,30 36,16 54,16 Z" />
+        android:pathData="M16,10 C23,10 30,10 54,10 C78,10 85,10 92,10 C98,10 98,16 98,24 C98,30 98,40 98,54 C98,68 98,78 98,84 C98,92 92,98 84,98 C78,98 68,98 54,98 C40,98 30,98 24,98 C16,98 10,92 10,84 C10,78 10,68 10,54 C10,40 10,30 10,24 C10,16 16,10 24,10 Z" />
 
-    <!-- 对勾 ✓（蓝） -->
+    <!-- 打开的书 - 左页 -->
     <path
-        android:fillColor="#2563EB"
-        android:pathData="M42,50 L49,57 L66,39 L64,37 L49,53 L44,48 Z" />
+        android:fillColor="#4A90E2"
+        android:pathData="M38,35 L54,28 L54,70 L38,77 Z"
+        android:alpha="0.15" />
+
+    <!-- 打开的书 - 右页 -->
+    <path
+        android:fillColor="#7B68EE"
+        android:pathData="M54,28 L70,35 L70,77 L54,70 Z"
+        android:alpha="0.15" />
+
+    <!-- 书的轮廓线 -->
+    <path
+        android:strokeColor="#4A90E2"
+        android:strokeWidth="1.5"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineJoin="round"
+        android:pathData="M38,35 L54,28 L70,35" />
+    <path
+        android:strokeColor="#4A90E2"
+        android:strokeWidth="1.5"
+        android:fillColor="@android:color/transparent"
+        android:strokeLineJoin="round"
+        android:pathData="M38,77 L54,70 L70,77" />
+    <path
+        android:strokeColor="#4A90E2"
+        android:strokeWidth="1.5"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M54,28 L54,70" />
+
+    <!-- 左页对勾 ✓（替代文字线） -->
+    <path
+        android:fillColor="#4A90E2"
+        android:pathData="M40,48 L44,52 L52,42 L50,40 L44,49 L42,46 Z" />
+
+    <!-- 右页答题卡方格 -->
+    <path
+        android:strokeColor="#7B68EE"
+        android:strokeWidth="1.2"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M58,46 L66,46" />
+    <path
+        android:strokeColor="#7B68EE"
+        android:strokeWidth="1.2"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M58,52 L66,52" />
+    <path
+        android:strokeColor="#7B68EE"
+        android:strokeWidth="1.2"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M58,58 L66,58" />
+    <!-- 涂黑的选项方块（B选项被涂满） -->
+    <path
+        android:fillColor="#7B68EE"
+        android:pathData="M58,52 L62,52 L62,52 L58,52 Z" />
+
+    <!-- 悬浮的钢笔尖 -->
+    <path
+        android:fillColor="#374151"
+        android:pathData="M64,18 L68,12 L66,10 L60,16 Z" />
+    <path
+        android:fillColor="#1F2937"
+        android:pathData="M68,12 L67,11 L66,13 Z" />
+
+    <!-- 笔尖处发光星芒 -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M56,12 L57,14 L59,15 L57,16 L56,18 L55,16 L53,15 L55,14 Z" />
 
 </vector>

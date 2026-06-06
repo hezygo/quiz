@@ -13,8 +13,8 @@ android {
         applicationId = "com.quizhelper.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 11
-        versionName = "2.2.7"
+        versionCode = 12
+        versionName = "2.2.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -130,23 +130,15 @@ fun SettingsScreen(
         Spacer(Modifier.height(16.dp))
 
         // About
-        Card(
+        Spacer(Modifier.height(8.dp))
+        SmallButton(
+            text = "💡 关于墨答",
+            onClick = { navController.navigate(Screen.About.route) { launchSingleTop = true } },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-        ) {
-            Column(Modifier.padding(20.dp)) {
-                Text("💡 关于", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
-                Spacer(Modifier.height(12.dp))
-                SecondaryButton(
-                    text = "关于墨答",
-                    onClick = { navController.navigate(Screen.About.route) { launchSingleTop = true } },
-                    modifier = Modifier.fillMaxWidth(),
-                    textColor = Blue600
-                )
-            }
-        }
+            containerColor = Blue50,
+            textColor = Blue600,
+            fontSize = 14
+        )
     }
 
     if (showClearHistoryDialog) {

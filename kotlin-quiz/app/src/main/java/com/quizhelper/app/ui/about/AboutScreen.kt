@@ -2,6 +2,7 @@ package com.quizhelper.app.ui.about
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -28,134 +29,125 @@ fun AboutScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
     ) {
-        BackButton(text = "← 返回", onClick = { navController.popBackStack() })
-
-        Spacer(Modifier.height(16.dp))
-
-        // App header card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        // 顶部渐变区域（二次元风格）
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Blue50)
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("📖", fontSize = 52.sp)
-                Spacer(Modifier.height(8.dp))
-                Text("墨答", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Gray800)
-                Text("v2.1.0", fontSize = 14.sp, color = Gray400)
-                Spacer(Modifier.height(6.dp))
-                Text("优雅刷题，从容作答", fontSize = 14.sp, color = Gray500, textAlign = TextAlign.Center)
-            }
+            BackButton(text = "← 返回", onClick = { navController.popBackStack() })
         }
 
-        Spacer(Modifier.height(16.dp))
-
-        // All info in one card (author + links + copyright)
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        // 主内容
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(Modifier.padding(20.dp)) {
+            // 大图标
+            Text("📖✨", fontSize = 64.sp)
+            Spacer(Modifier.height(8.dp))
+            Text("墨 答", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Gray800)
+            Spacer(Modifier.height(4.dp))
+            Text("v2.1.0", fontSize = 14.sp, color = Gray400)
+            Spacer(Modifier.height(6.dp))
+            Text("优雅刷题，从容作答", fontSize = 15.sp, color = Gray500)
+            Spacer(Modifier.height(24.dp))
 
-                // Author section
-                Text("👤 作者", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
-                Spacer(Modifier.height(12.dp))
-                InfoRow("作者", "littleboy")
-                Spacer(Modifier.height(8.dp))
+            // 分隔装饰
+            Text("✦ ✦ ✦", fontSize = 14.sp, color = Gray200)
 
-                // Clickable email
-                Row(
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        val intent = Intent(Intent.ACTION_SENDTO).apply {
-                            data = Uri.parse("mailto:littleboy@example.com")
-                        }
-                        context.startActivity(intent)
-                    },
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("邮箱", fontSize = 14.sp, color = Gray500)
-                    Text("littleboy@example.com →", fontSize = 14.sp, color = Blue600, fontWeight = FontWeight.Medium)
+            Spacer(Modifier.height(20.dp))
+
+            // 信息列表
+            AboutItem("👤", "作者", "littleboy")
+            Spacer(Modifier.height(4.dp))
+
+            AboutClickableItem("📧", "邮箱", "littleboy@example.com") {
+                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("mailto:littleboy@example.com")
                 }
-                Spacer(Modifier.height(8.dp))
-
-                // Clickable GitHub
-                Row(
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/littleboy"))
-                        context.startActivity(intent)
-                    },
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("GitHub", fontSize = 14.sp, color = Gray500)
-                    Text("github.com/littleboy →", fontSize = 14.sp, color = Blue600, fontWeight = FontWeight.Medium)
-                }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = Gray100)
-
-                // Links section
-                Text("🔗 项目", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
-                Spacer(Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/littleboy/quiz-helper"))
-                        context.startActivity(intent)
-                    },
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("项目地址", fontSize = 14.sp, color = Gray500)
-                    Text("GitHub →", fontSize = 14.sp, color = Blue600, fontWeight = FontWeight.Medium)
-                }
-                Spacer(Modifier.height(8.dp))
-                InfoRow("开源协议", "MIT License")
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp), color = Gray100)
-
-                // Copyright section
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        "© 2026 littleboy. All rights reserved.",
-                        fontSize = 13.sp,
-                        color = Gray400,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        "本软件仅供学习交流使用",
-                        fontSize = 12.sp,
-                        color = Gray300,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                context.startActivity(intent)
             }
-        }
+            Spacer(Modifier.height(4.dp))
 
-        Spacer(Modifier.height(24.dp))
+            AboutClickableItem("🐙", "GitHub", "github.com/littleboy") {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/littleboy"))
+                context.startActivity(intent)
+            }
+            Spacer(Modifier.height(4.dp))
+
+            AboutClickableItem("📦", "项目地址", "github.com/littleboy/quiz-helper") {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/littleboy/quiz-helper"))
+                context.startActivity(intent)
+            }
+            Spacer(Modifier.height(4.dp))
+
+            AboutItem("📜", "开源协议", "MIT License")
+
+            Spacer(Modifier.height(20.dp))
+            Text("✦ ✦ ✦", fontSize = 14.sp, color = Gray200)
+            Spacer(Modifier.height(20.dp))
+
+            // 版权
+            Text(
+                "© 2026 littleboy",
+                fontSize = 13.sp,
+                color = Gray400
+            )
+            Text(
+                "本软件仅供学习交流使用",
+                fontSize = 12.sp,
+                color = Gray300,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            Spacer(Modifier.height(32.dp))
+        }
     }
 }
 
 @Composable
-private fun InfoRow(label: String, value: String) {
-    Row(
+private fun AboutItem(emoji: String, label: String, value: String) {
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        shape = RoundedCornerShape(14.dp),
+        color = Gray50
     ) {
-        Text(label, fontSize = 14.sp, color = Gray500)
-        Text(value, fontSize = 14.sp, color = Gray700, fontWeight = FontWeight.Medium)
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(emoji, fontSize = 18.sp)
+            Spacer(Modifier.width(12.dp))
+            Text(label, fontSize = 14.sp, color = Gray500, modifier = Modifier.width(70.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(value, fontSize = 14.sp, color = Gray700, fontWeight = FontWeight.Medium)
+        }
+    }
+}
+
+@Composable
+private fun AboutClickableItem(emoji: String, label: String, value: String, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
+        color = Blue50
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(emoji, fontSize = 18.sp)
+            Spacer(Modifier.width(12.dp))
+            Text(label, fontSize = 14.sp, color = Gray500, modifier = Modifier.width(70.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(value, fontSize = 14.sp, color = Blue600, fontWeight = FontWeight.Medium)
+        }
     }
 }

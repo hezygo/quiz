@@ -69,7 +69,9 @@ fun HistoryDetailScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("练习详情", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Gray800)
+                Text(
+                    if (r.mode == "exam") "考试详情" else "练习详情",
+                    fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Gray800)
                 Text(
                     TimeUtils.formatTimestampFull(r.timestamp),
                     fontSize = 12.sp,

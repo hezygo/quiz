@@ -161,7 +161,12 @@ object ExcelParser {
                     if (inT) chars.append(ch, start, length)
                 }
                 override fun endElement(uri: String, localName: String, qName: String) {
-                    if (qName == "t") { sharedStrings.add(chars.toString()); chars.clear(); inT = false }
+                    // 正确处理多段文本（<si> 内可能有多个 <r> 各含一个 <t>）
+                    if (qName == "t") inT = false
+                    if (qName == "si") {
+                        sharedStrings.add(chars.toString())
+                        chars.clear()
+                    }
                 }
             }
             parser.parse(java.io.ByteArrayInputStream(data), handler)

@@ -386,7 +386,7 @@ private fun QuizBottomBar(
             // Next button (right)
             OutlinedButton(
                 onClick = onNext,
-                enabled = progress.current < progress.total,
+                enabled = progress.current < progress.total && !(isExam && !isAnswered),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Text("下一题 →", fontSize = 13.sp)

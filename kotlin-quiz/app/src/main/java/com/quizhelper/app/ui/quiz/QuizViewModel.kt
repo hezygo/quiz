@@ -48,6 +48,8 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
 
     fun startPractice(random: Boolean = true, source: String = "all") {
         questionSource = source
+        _isFinished.value = false
+        _result.value = null
         _isReady.value = false
         viewModelScope.launch {
             val questions = if (source == "wrong") {
@@ -63,6 +65,8 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun startExam() {
+        _isFinished.value = false
+        _result.value = null
         _isReady.value = false
         viewModelScope.launch {
             val allQuestions = repository.getAllQuestionsList()

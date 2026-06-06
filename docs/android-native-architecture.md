@@ -1,0 +1,643 @@
+# 刷题助手 — Android 原生客户端架构文档
+
+> 基于 Kotlin + Jetpack Compose 构建的原生刷题应用  
+> 包名：`com.quizhelper.app` | 版本：`2.0.0` | minSdk: 26 | targetSdk: 36
+
+---
+
+## 目录
+
+1. [项目概览](#1-项目概览)
+2. [技术栈](#2-技术栈)
+3. [项目结构](#3-项目结构)
+4. [功能清单](#4-功能清单)
+5. [架构分层](#5-架构分层)
+   - 5.1 [数据层 (Data Layer)](#51-数据层)
+   - 5.2 [业务逻辑层 (Repository + ViewModel)](#52-业务逻辑层)
+   - 5.3 [UI 层 (Jetpack Compose)](#53-ui-层)
+   - 5.4 [工具层 (Utilities)](#54-工具层)
+6. [核心流程](#6-核心流程)
+   - 6.1 [题库导入流程](#61-题库导入流程)
+   - 6.2 [练习模式流程](#62-练习模式流程)
+   - 6.3 [考试模式流程](#63-考试模式流程)
+   - 6.4 [历史记录流程](#64-历史记录流程)
+7. [导航与路由](#7-导航与路由)
+8. [数据模型详解](#8-数据模型详解)
+9. [关键设计决策](#9-关键设计决策)
+10. [依赖清单](#10-依赖清单)
+
+---
+
+## 1. 项目概览
+
+| 项目 | 说明 |
+|------|------|
+| **项目目录** | `kotlin-quiz/` |
+| **应用名称** | 刷题助手 |
+| **应用 ID** | `com.quizhelper.app` |
+| **当前版本** | 2.0.0 (versionCode 2) |
+| **最低系统** | Android 8.0 (API 26) |
+| **目标系统** | Android 16 (API 36) |
+| **开发语言** | Kotlin 100% |
+| **UI 框架** | Jetpack Compose (Material 3) |
+| **数据库** | Room (SQLite) |
+| **架构模式** | MVVM (Model-View-ViewModel) |
+
+### 与其他模块的关系
+
+- **Capacitor `android/` 目录**：这是项目的 WebView 壳工程（Capacitor 构建产物），用于将 Web 版打包成 APK。两者是**独立并存**的 Android 项目，可分别构建。
+- **`src/`（Web 前端）**：Vue 3 Web 版源码，与本原生客户端功能平行但代码独立。
+
+---
+
+## 2. 技术栈
+
+| 类别 | 技术 | 版本 |
+|------|------|------|
+| 语言 | Kotlin | 2.0.0 |
+| UI | Jetpack Compose + Material 3 | BOM 2024.02.00 |
+| 导航 | Navigation Compose | 2.7.7 |
+| 数据库 | Room (SQLite) | 2.6.1 |
+| ORM 编译 | KSP (Kotlin Symbol Processing) | 2.0.0-1.0.21 |
+| 异步 | Kotlin Coroutines / Flow | 1.8.0 |
+| JSON | Gson | 2.10.1 |
+| Excel 解析 | Android 原生 SAX Parser (无 Apache POI) | 内置 |
+| 构建 | Gradle + Android Gradle Plugin | 8.4.0 |
+| 签名 | Android Debug Keystore | 本地 |
+
+### 无外部依赖的特性
+
+- **Excel (.xlsx) 解析**：未使用 Apache POI，而是利用 xlsx = ZIP + XML 的特性，用 `ZipInputStream` + `SAXParser` 直接解析。
+- **主题与颜色**：纯自定义颜色系统，未使用 Material 预设调色板。
+
+---
+
+## 3. 项目结构
+
+```
+kotlin-quiz/
+├── build.gradle.kts              # 根构建配置（AGP 8.4, Kotlin 2.0, KSP）
+├── settings.gradle.kts           # 项目设置
+├── gradle.properties             # Gradle 属性
+├── gradle/wrapper/               # Gradle Wrapper
+├── local.properties              # 本地 Android SDK 路径
+│
+└── app/
+    ├── build.gradle.kts          # 模块构建配置
+    ├── proguard-rules.pro        # 混淆规则
+    └── src/main/
+        ├── AndroidManifest.xml   # 清单文件（权限、Activity、intent-filter）
+        ├── res/                  # 资源文件（图标、主题样式、字符串）
+        │
+        └── java/com/quizhelper/app/
+            ├── MainActivity.kt           # 入口 Activity (ComponentActivity)
+            ├── QuizHelperApp.kt          # Application 类（数据库单例宿主）
+            │
+            ├── data/
+            │   ├── db/
+            │   │   ├── AppDatabase.kt    # Room 数据库定义（4 张表）
+            │   │   ├── QuestionDao.kt    # 题目 & 题库元数据 DAO
+            │   │   └── HistoryDao.kt     # 历史记录 & 答题详情 DAO
+            │   │
+            │   ├── model/
+            │   │   ├── Question.kt       # 题目实体 + 题库元数据
+            │   │   ├── HistoryRecord.kt  # 历史记录 & 答题详情实体
+            │   │   ├── QuizSession.kt    # 答题会话 + 结果 + 评判
+            │   │   └── ImportResult.kt   # 导入结果
+            │   │
+            │   ├── parser/
+            │   │   └── ExcelParser.kt    # xlsx 解析器（SAX + ZIP）
+            │   │
+            │   └── repository/
+            │       └── QuizRepository.kt # 统一数据仓库
+            │
+            ├── ui/
+            │   ├── components/
+            │   │   ├── MainScreen.kt     # 根 Scaffold（底部导航框架）
+            │   │   ├── BottomNavBar.kt   # 底部导航栏（首页/历史/设置）
+            │   │   └── CommonComponents.kt # 通用 UI 组件
+            │   │
+            │   ├── navigation/
+            │   │   ├── Screen.kt         # 路由定义 sealed class
+            │   │   └── NavGraph.kt       # 导航图定义
+            │   │
+            │   ├── home/
+            │   │   ├── HomeScreen.kt     # 首页（题库导入 + 模式选择）
+            │   │   └── HomeViewModel.kt  # 首页 ViewModel
+            │   │
+            │   ├── quiz/
+            │   │   ├── QuizScreen.kt     # 答题主界面
+            │   │   ├── QuizViewModel.kt  # 答题 ViewModel（核心逻辑）
+            │   │   └── ResultScreen.kt   # 结果展示页（独立路由）
+            │   │
+            │   ├── history/
+            │   │   ├── HistoryScreen.kt       # 历史列表页
+            │   │   ├── HistoryDetailScreen.kt # 历史详情页
+            │   │   └── HistoryViewModel.kt    # 历史 ViewModel
+            │   │
+            │   ├── settings/
+            │   │   ├── SettingsScreen.kt      # 设置页
+            │   │   └── SettingsViewModel.kt   # 设置 ViewModel
+            │   │
+            │   └── theme/
+            │       ├── Color.kt         # 颜色系统（蓝/绿/红/紫/琥珀/灰）
+            │       └── Theme.kt         # Material 3 主题配置
+            │
+            └── util/
+                ├── Logger.kt            # 日志工具（封装 Android Log）
+                ├── QuizEngine.kt        # 题冧引擎（核心业务逻辑）
+                └── TimeUtils.kt         # 时间格式化工具
+```
+
+---
+
+## 4. 功能清单
+
+### 4.1 题库导入
+
+| 功能 | 描述 |
+|------|------|
+| Excel 导入 | 支持 `.xlsx` / `.xls` 格式，通过系统文件选择器选取 |
+| 自动列识别 | 智能匹配表头（中文/英文别名），自动检测列位置 |
+| 题型推导 | 根据"判断"/"多选"关键词或答案数量自动判断题型 |
+| 数据验证 | 空题干/不足2选项/答案格式错误 → 跳过并警告 |
+| 上限保护 | 最多 10000 题，超出报错 |
+| 覆盖导入 | 导入新题库时自动清空旧题库 + 历史记录 |
+| 兼容模式 | Android 10+ 使用 scoped storage，旧版本请求 `READ_EXTERNAL_STORAGE` |
+
+### 4.2 练习模式 (Practice)
+
+| 功能 | 描述 |
+|------|------|
+| 随机出题 | 全部题目随机打乱顺序 |
+| 即时反馈 | 提交答案后立即显示对错和正确答案 |
+| 自动提交 | 单/判断题选择后直接判对错 |
+| 解析查看 | 每道题可查看解析说明 |
+| 答题网格 | 题号网格，已答绿色/未答灰色/当前蓝色高亮 |
+| 跳题 | 通过网格点击任意跳转 |
+| 自由导航 | 上一题/下一题，可反复修改已答题 |
+| 进度条 | 顶部进度条显示答题进度 |
+
+### 4.3 考试模式 (Exam)
+
+| 功能 | 描述 |
+|------|------|
+| 标准化组卷 | 单选 60 题 + 多选 100 题 + 判断 40 题 = 200 题 |
+| 限时机制 | 总计 6000 秒（100 分钟），倒计时显示 |
+| 超时自动交卷 | 时间耗尽自动提交 |
+| 选后即判 | 选择答案立即记录并显示对错（不可改） |
+| 分数换算 | 每题 0.5 分，满分 = 总题数 × 0.5 |
+| 分项统计 | 按题型展示正确率（单选/多选/判断） |
+| 限时视觉反馈 | <10 分钟橙色警告，<5 分钟红色危险 |
+
+### 4.4 历史记录
+
+| 功能 | 描述 |
+|------|------|
+| 历史列表 | 按时间倒序展示所有练习记录 |
+| 练习/考试标识 | 考试记录带"考试"标签 |
+| 分数着色 | 绿色及格 / 黄色中等 / 红色不及格 |
+| 详情查看 | 逐题展示用户答案 vs 正确答案 |
+| 题目筛选 | 全部 / 单选 / 多选 / 判断 分类查看 |
+| 解析回顾 | 详情页每道题都可查看解析 |
+
+### 4.5 设置
+
+| 功能 | 描述 |
+|------|------|
+| 题库信息 | 显示总题数、各题型数量、导入时间 |
+| 历史统计 | 历史记录条数 |
+| 清空历史 | 删除所有练习记录，保留题库 |
+| 清除全部 | 删除题库 + 所有历史记录 |
+
+---
+
+## 5. 架构分层
+
+### 5.1 数据层
+
+#### Room 数据库 — `AppDatabase.kt`
+
+4 张表，版本 1，使用 `fallbackToDestructiveMigration()`（降级破坏式迁移）。
+
+| 表名 | 实体 | 主键 | 说明 |
+|------|------|------|------|
+| `questions` | `Question` | `id` (自增) | 题目数据 |
+| `question_bank_meta` | `QuestionBankMeta` | `id=1` | 题库元数据（单行表） |
+| `history_records` | `HistoryRecord` | `id` (UUID) | 练习/考试历史 |
+| `history_details` | `HistoryDetail` | `id` (自增) | 每道题的答题详情 |
+
+#### DAO — `QuestionDao.kt`
+
+主要操作：
+- **查询**：全部题目（Flow/一次）、按类型查询、按 ID 查询、统计总数/各类型数
+- **写入**：批量插入（REPLACE 冲突策略）、单条插入
+- **删除**：全部删除
+- **题库元数据**：插入/查询/Flow 监听
+- **事务**：`replaceAll()` — 全量替换题库（删除旧题 → 写入新题 → 删除旧元数据 → 写入新元数据）
+
+#### DAO — `HistoryDao.kt`
+
+主要操作：
+- **查询**：全部历史（Flow）、按 ID 查询、详情列表
+- **写入**：单条历史记录、批量答题详情
+- **事务**：`insertFullRecord()` — 写入记录 + 明细
+- **删除**：全部清空
+
+### 5.2 业务逻辑层
+
+#### QuizRepository — 统一数据仓库
+
+```kotlin
+class QuizRepository(private val context: Context)
+```
+
+职责：
+- 持有 DB、DAO、Gson、Logger
+- 对外暴露：`bankMeta: Flow`、`allQuestions: Flow`、`allHistory: Flow`
+- 导入流程编排：解析 Excel → 统计题型 → `questionDao.replaceAll()` → `historyDao.deleteAllHistory()`
+- 保存结果：`HistoryRecord` + `HistoryDetail` 构建 → 事务写入
+- 提供获取/清除数据的统一入口
+
+#### ViewModel 层
+
+共 5 个 ViewModel，均继承 `AndroidViewModel`（持有 `Application` 引用）：
+
+| ViewModel | 对应的 Screen | 核心职责 |
+|-----------|---------------|----------|
+| `HomeViewModel` | HomeScreen | 题库元数据监听、Excel 文件导入 |
+| `QuizViewModel` | QuizScreen/ResultScreen | 答题会话管理、模式切换、提交判分 |
+| `HistoryViewModel` | HistoryScreen | 历史列表监听 |
+| `HistoryDetailViewModel` | HistoryDetailScreen | 单条历史加载、详情筛选 |
+| `SettingsViewModel` | SettingsScreen | 数据清除操作 |
+
+所有 ViewModel 共享 `QuizRepository` 实例。
+
+### 5.3 UI 层
+
+采用 **Jetpack Compose** + **Material 3**，遵循无状态组件模式：
+
+- **状态提升**：所有可变状态在 ViewModel 中管理，Screen 组件通过 `collectAsState()` 订阅
+- **导航**：`NavHost` + `composable()` 路由
+- **底部导航**：三级导航（首页/历史/设置），答题和结果页隐藏底部栏
+
+#### UI 组件层次
+
+```
+MainScreen (Scaffold + 底部导航)
+├── NavGraph
+│   ├── HomeScreen          // 首页（无题库: 引导导入；有题库: 练习/考试入口）
+│   ├── QuizScreen          // 答题界面（题号栏 + 题目 + 选项 + 反馈 + 底部操作栏）
+│   ├── ResultScreen        // 结果界面（分数 + 统计 + 操作按钮）
+│   ├── HistoryScreen       // 历史列表
+│   ├── HistoryDetailScreen // 历史详情（逐题展示 + 筛选）
+│   └── SettingsScreen      // 设置页
+```
+
+#### 通用 UI 组件 (`CommonComponents.kt`)
+
+| 组件 | 用途 |
+|------|------|
+| `QuestionTypeTag` | 题型标签（单选蓝/多选紫/判断琥珀） |
+| `OptionButton` | 选项按钮（选中/正确/错误状态，各有颜色区分） |
+| `ProgressBar` | 答题进度条 |
+| `ScoreCircle` | 圆形分数展示（60分以上绿色） |
+| `ScoreStat` | 统计数字组件 |
+| `ConfirmDialog` | 通用确认弹窗 |
+
+### 5.4 工具层
+
+#### QuizEngine — 题冧引擎（核心）
+
+无状态工具类（`object`），不依赖 Android 环境：
+
+| 方法 | 说明 |
+|------|------|
+| `shuffle()` | Fisher-Yates 洗牌算法 |
+| `judge()` | 比较用户答案与正确答案（排序后逐元素比较） |
+| `createSession()` | 创建答题会话（可选随机顺序 + 限时） |
+| `getCurrentQuestion()` | 获取当前题目 |
+| `submitAnswer()` | 提交答案 → 生成评判结果 |
+| `goToQuestion/next/prev()` | 题目导航 |
+| `getProgress()` | 进度统计 |
+| `computeScore()` | 练习模式计分 |
+| `buildResult()` | 构建练习结果 |
+| `selectExamQuestions()` | 按配额抽题（单60/多100/判40） |
+| `computeExamScore()` | 考试模式计分（每题0.5分） |
+| `buildExamResult()` | 构建考试结果 |
+
+#### Logger — 日志封装
+
+```kotlin
+Logger.create("QuizVM") -> Log tag: "QuizHelper/QuizVM"
+```
+
+包装 Android `Log.{d,i,w,e}` 方法，统一日志前缀。
+
+#### TimeUtils — 时间工具
+
+| 方法 | 输出格式 |
+|------|----------|
+| `formatTimestamp()` | `2026/06/06 21:30` |
+| `formatTimestampFull()` | `2026/06/06 21:30:15` |
+| `formatDuration()` | `5分30秒` / `30秒` |
+| `formatCountdown()` | `05:30` (MM:SS) |
+
+---
+
+## 6. 核心流程
+
+### 6.1 题库导入流程
+
+```
+用户点击"导入题库"
+    → 系统文件选择器 (OpenDocument)
+    → 选择 .xlsx 文件
+    → HomeViewModel.importFile(uri)
+        → QuizRepository.importExcel(uri) [Dispatchers.IO]
+            → ExcelParser.parse(context, uri)
+                → ZipInputStream 读取 xlsx
+                → 解压到内存 (entries: Map<name, bytes>)
+                → 解析 xl/sharedStrings.xml → 共享字符串表
+                → 解析 xl/worksheets/sheet1.xml → SAX 逐行解析
+                → findHeaderRow(): 前 10 行扫描匹配表头
+                → detectColumns(): 匹配列别名
+                → 逐行读取数据 → 构建 Question 对象
+                → 验证: 题干、选项、答案格式检查
+                → 返回 ParseResult
+            → 统计各题型数量
+            → questionDao.replaceAll() (@Transaction)
+            → historyDao.deleteAllHistory()
+            → 返回 ImportResult
+    → HomeScreen 显示导入结果消息
+```
+
+**Excel 解析亮点**：
+- 无需 Apache POI，直接操作 XML
+- 智能表头匹配，支持中英文列名
+- 自动查找表头行（前 10 行评分最高者）
+- 答案格式兼容：`A/B/C`、`A,B,C`、`正确/错误`、数字索引
+
+### 6.2 练习模式流程
+
+```
+首页 → 点击"开始练习"
+    → navController.navigate("quiz/practice")
+    → QuizScreen 加载
+    → QuizViewModel.startPractice()
+        → repository.getAllQuestionsList()
+        → QuizEngine.createSession(questions, random=true, mode=PRACTICE)
+    → 逐题展示
+        → 单选题/判断题: 点击选项 → 自动判对错 → 显示反馈
+        → 多选题: 点击选项(可多选) → 点击"提交答案" → 显示反馈
+    → 用户可: 上一题 / 下一题 / 题号网格跳转
+    → 点击"完成" / 最后一题"下一题"
+        → QuizEngine.buildResult()
+        → repository.saveResult()
+    → 显示 ResultContent 结果页
+```
+
+### 6.3 考试模式流程
+
+```
+首页 → 点击"开始考试"
+    → navController.navigate("quiz/exam")
+    → QuizViewModel.startExam()
+        → repository.getAllQuestionsList()
+        → QuizEngine.selectExamQuestions() → 抽题（单60/多100/判40）
+        → QuizEngine.createSession(questions, random=false, mode=EXAM, timeLimit=6000)
+        → startTimer() → 起计时协程
+    → 考试中
+        → 倒计时显示在顶栏
+        → 选择任意选项 → 自动提交 → 显示对错 → 锁定答案（不可改）
+        → 可上下翻页或跳题
+    → 超时 / 点击"交卷"
+        → finishQuiz()
+        → QuizEngine.buildExamResult()
+        → repository.saveResult()
+    → 显示分数（满分制）、分项统计、各按钮
+```
+
+### 6.4 历史记录流程
+
+```
+底部导航 → "历史"
+    → HistoryViewModel: repository.allHistory (Flow)
+    → LazyColumn 展示历史列表
+
+点击某条记录 → navigate("history/{id}")
+    → HistoryDetailScreen
+    → HistoryDetailViewModel.load(id)
+        → repository.getHistoryById()
+        → repository.getHistoryDetails()
+        → repository.getAllQuestionsList() (用于展示题目内容)
+    → 显示分数概览 + 逐题答案对比 + 解析
+    → 支持按题型筛选
+```
+
+---
+
+## 7. 导航与路由
+
+### 路由定义 (`Screen.kt`)
+
+```kotlin
+sealed class Screen(val route: String) {
+    data object Home          : Screen("home")
+    data object Quiz          : Screen("quiz/{mode}")
+    data object Result        : Screen("result/{sessionId}")
+    data object History       : Screen("history")
+    data object HistoryDetail : Screen("history/{id}")
+    data object Settings      : Screen("settings")
+}
+```
+
+### 导航图 (`NavGraph.kt`)
+
+```
+home (startDestination)
+├── quiz/{mode}           // mode: "practice" | "exam"
+│   └── result/{sessionId}
+├── history
+│   └── history/{id}
+└── settings
+```
+
+### 底部导航显示逻辑
+
+仅在 `home`、`history`、`settings` 三个一级页面显示底部栏。答题页、结果页、详情页自动隐藏。
+
+```kotlin
+val showBottomBar = currentRoute in listOf(
+    Screen.Home.route, Screen.History.route, Screen.Settings.route
+)
+```
+
+---
+
+## 8. 数据模型详解
+
+### 8.1 `Question`（题目）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long (PK, 自增) | 数据库主键 |
+| `questionId` | String | 业务题号（"q1", "eq1" 等） |
+| `type` | `QuestionType` | 枚举: SINGLE / MULTIPLE / BOOLEAN |
+| `stem` | String | 题干内容 |
+| `options` | String | 选项，以 `"; "` 分隔（如 "A选项; B选项; C选项"） |
+| `answer` | String | 正确答案索引，以 `","` 分隔（如 "0,2"） |
+| `analysis` | String | 题目解析 |
+| `importTime` | Long | 导入时间戳 |
+
+辅助方法：
+- `getOptionsList()` → `"; "` 分割为 List
+- `getAnswerList()` → `","` 分割为 `List<Int>`
+
+### 8.2 `QuestionBankMeta`（题库元数据）
+
+单行表（`id = 1`），记录题库统计摘要。
+
+| 字段 | 说明 |
+|------|------|
+| `totalCount` | 总题数 |
+| `singleCount` | 单选题数 |
+| `multipleCount` | 多选题数 |
+| `booleanCount` | 判断题数 |
+| `importTime` | 导入时间 |
+| `version` | 版本号 |
+
+### 8.3 `HistoryRecord`（历史记录）
+
+| 字段 | 说明 |
+|------|------|
+| `id` (PK) | 会话 ID（格式: `sess_{timestamp}_{counter}`） |
+| `mode` | `"practice"` 或 `"exam"` |
+| `timestamp` | 完成时间 |
+| `totalCount` | 总题数 |
+| `correctCount` | 正确数 |
+| `answeredCount` | 已答数 |
+| `score` | 得分（练习: 百分比；考试: 原始分数） |
+| `maxScore` | 满分（仅考试模式） |
+| `duration` | 用时（秒） |
+| `breakdown` | JSON 字符串（考试分项统计，用 Gson 序列化） |
+
+### 8.4 `HistoryDetail`（答题详情）
+
+外键关联 `history_records.id`，级联删除。
+
+| 字段 | 说明 |
+|------|------|
+| `id` (PK, 自增) | |
+| `historyId` (FK) | 关联历史记录 |
+| `questionId` | 题目 ID |
+| `userAnswer` | 用户答案，`","` 分隔的索引字符串 |
+| `isCorrect` | 是否正确 |
+
+### 8.5 `QuizSession`（答题会话）
+
+内存数据（不持久化），驱动答题逻辑：
+
+| 字段 | 说明 |
+|------|------|
+| `id` | 会话 ID |
+| `questions` | 题目列表（有序） |
+| `currentIndex` | 当前题目索引 |
+| `answers` | `MutableMap<问题ID, 答案List>` |
+| `startTime/endTime` | 起止时间戳 |
+| `isFinished` | 是否已完成 |
+| `mode` | PRACTICE / EXAM |
+| `timeLimitSeconds` | 限时（秒，仅考试模式） |
+| `randomOrder` | 是否随机顺序 |
+
+### 8.6 辅助数据类型
+
+| 类型 | 用途 |
+|------|------|
+| `ImportResult` | 导入结果（成功/失败 + 各题型计数 + 警告） |
+| `QuizResult` | 答题结果（含分项统计、详情列表） |
+| `AnswerDetail` | 单题答题详情 |
+| `ExamBreakdown` | 考试分项（三个 `TypeBreakdown`） |
+| `TypeBreakdown` | 题型统计（total/correct/score） |
+| `Judgment` | 单题评判结果（isCorrect + correctAnswer） |
+| `ProgressInfo` | 进度信息（current/total/answered/unanswered） |
+| `ScoreResult` | 练习计分结果 |
+| `ExamScoreResult` | 考试计分结果 |
+
+---
+
+## 9. 关键设计决策
+
+### 9.1 不依赖 Apache POI
+
+选型理由：POI 体积大（~5MB），增加 APK 体积。xlsx 本质是 ZIP + XML，Android 原生 `ZipInputStream` + `SAXParser` 足以高效解析，且不增加依赖。
+
+### 9.2 题库元数据独立表
+
+将 `QuestionBankMeta` 与 `Question` 分离：
+- 避免每次统计都需要 `COUNT` 查询
+- 可通过 Flow 实时监听题库状态变化
+- 单行设计简化查询
+
+### 9.3 导入即覆盖
+
+导入新题库时自动清空历史记录：
+- 保证题目 ID 与历史记录的引用一致性
+- 题目更新后旧记录失去意义
+- 用户操作前有确认弹窗
+
+### 9.4 考试模式逻辑
+
+- 抽题策略：从全部题目中按类型配额随机抽取（单 60 / 多 100 / 判 40）
+- 每题 0.5 分（使满分接近传统 100 分制）
+- 选即提交：点击选项立即记录答案并评判
+- 不可修改：模拟真实考试环境
+
+### 9.5 颜色系统
+
+自定义 6 色系（蓝/绿/红/紫/琥珀/灰），每色系 4-8 个色阶，确保：
+- 红绿色盲友好（辅以图标 ✓✗）
+- 各题型有明确区分色（单选蓝/多选紫/判断琥珀）
+- 正确/错误状态视觉明确
+
+---
+
+## 10. 依赖清单
+
+```kotlin
+// AndroidX Core
+androidx.core:core-ktx                    // 1.13.1
+
+// Lifecycle
+androidx.lifecycle:lifecycle-runtime-ktx  // 2.7.0
+androidx.lifecycle:lifecycle-runtime-compose // 2.7.0
+androidx.lifecycle:lifecycle-viewmodel-compose // 2.7.0
+
+// Activity Compose
+androidx.activity:activity-compose        // 1.9.0
+
+// Compose BOM
+androidx.compose:compose-bom              // 2024.02.00
+    ├── ui
+    ├── ui-graphics
+    ├── ui-tooling-preview
+    ├── material3
+    ├── material-icons-extended
+    └── animation
+
+// Navigation
+androidx.navigation:navigation-compose    // 2.7.7
+
+// Room
+androidx.room:room-runtime                // 2.6.1
+androidx.room:room-ktx                    // 2.6.1
+androidx.room:room-compiler (KSP)         // 2.6.1
+
+// Coroutines
+kotlinx-coroutines-android                // 1.8.0
+
+// JSON
+com.google.code.gson:gson                 // 2.10.1
+```
+
+**无网络依赖**：所有数据完全离线，本地存储。

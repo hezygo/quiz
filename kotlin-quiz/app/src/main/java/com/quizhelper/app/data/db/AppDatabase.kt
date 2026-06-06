@@ -8,15 +8,17 @@ import com.quizhelper.app.data.model.HistoryDetail
 import com.quizhelper.app.data.model.HistoryRecord
 import com.quizhelper.app.data.model.Question
 import com.quizhelper.app.data.model.QuestionBankMeta
+import com.quizhelper.app.data.model.WrongQuestion
 
 @Database(
     entities = [
         Question::class,
         QuestionBankMeta::class,
         HistoryRecord::class,
-        HistoryDetail::class
+        HistoryDetail::class,
+        WrongQuestion::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

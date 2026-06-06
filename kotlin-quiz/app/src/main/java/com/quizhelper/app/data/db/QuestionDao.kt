@@ -3,6 +3,7 @@ package com.quizhelper.app.data.db
 import androidx.room.*
 import com.quizhelper.app.data.model.Question
 import com.quizhelper.app.data.model.QuestionBankMeta
+import com.quizhelper.app.data.model.WrongQuestion
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -54,4 +55,27 @@ interface QuestionDao {
         deleteBankMeta()
         insertBankMeta(meta)
     }
+
+    // ---- Wrong Questions ----
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWrongQuestion(wq: WrongQuestion)
+
+    @Query("DELETE FROM wrong_questions WHERE question_id = :questionId")
+    suspend fun deleteWrongQuestion(questionId: Long)
+
+    @Query("SELECT * FROM wrong_questions ORDER BY last_wrong_time DESC")
+    fun getAllWrongQuestionsFlow(): Flow<List<WrongQuestion>>
+
+    @Query("SELECT q.* FROM questions q INNER JOIN wrong_questions wq ON q.id = wq.question_id")
+    suspend fun getWrongQuestionsList(): List<Question>
+
+    @Query("SELECT COUNT(*) FROM wrong_questions")
+    suspend fun getWrongQuestionCount(): Int
+
+    @Query("SELECT * FROM wrong_questions WHERE question_id = :questionId")
+    suspend fun getWrongQuestionByQuestionId(questionId: Long): WrongQuestion?
+
+    @Query("DELETE FROM wrong_questions")
+    suspend fun deleteAllWrongQuestions()
 }

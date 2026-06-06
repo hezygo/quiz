@@ -81,16 +81,33 @@ fun HistoryDetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
+                    // Score (point-based)
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val scoreText = if (r.mode == "exam" && r.maxScore != null) {
+                            "${r.score.toInt()} / ${r.maxScore.toInt()} 分"
+                        } else {
+                            "${r.score.toInt()} / ${r.totalCount} 分"
+                        }
                         Text(
-                            if (r.mode == "exam") "${r.score.toInt()} / ${r.maxScore?.toInt() ?: 100} 分"
-                            else "${r.score.toInt()}%",
+                            scoreText,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (r.score >= 60) Green600 else Red500
                         )
+                        Text("得分", fontSize = 11.sp, color = Gray400)
+                    }
+                    // Correct rate
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val rate = if (r.totalCount > 0) (r.correctCount.toDouble() / r.totalCount * 100).toInt() else 0
+                        Text(
+                            "${rate}%",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (rate >= 60) Green600 else Red500
+                        )
                         Text("正确率", fontSize = 11.sp, color = Gray400)
                     }
+                    // Correct count
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             "${r.correctCount}/${r.totalCount}",
@@ -100,6 +117,7 @@ fun HistoryDetailScreen(
                         )
                         Text("正确 / 总题", fontSize = 11.sp, color = Gray400)
                     }
+                    // Duration
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             TimeUtils.formatDuration(r.duration),

@@ -92,16 +92,17 @@ private fun HistoryCard(record: HistoryRecord, onClick: () -> Unit) {
                         )
                     }
                 }
+                val correctRate = if (record.totalCount > 0) (record.correctCount.toDouble() / record.totalCount * 100).toInt() else 0
                 val scoreColor = when {
-                    record.mode == "exam" -> if (record.score >= 60) Green700 else Red600
-                    record.score >= 80 -> Green700
-                    record.score >= 60 -> Amber700
+                    record.mode == "exam" -> if (correctRate >= 60) Green700 else Red600
+                    correctRate >= 80 -> Green700
+                    correctRate >= 60 -> Amber700
                     else -> Red600
                 }
                 val bgColor = when {
-                    record.mode == "exam" -> if (record.score >= 60) Green50 else Red50
-                    record.score >= 80 -> Green50
-                    record.score >= 60 -> Amber50
+                    record.mode == "exam" -> if (correctRate >= 60) Green50 else Red50
+                    correctRate >= 80 -> Green50
+                    correctRate >= 60 -> Amber50
                     else -> Red50
                 }
                 Surface(
@@ -110,7 +111,7 @@ private fun HistoryCard(record: HistoryRecord, onClick: () -> Unit) {
                 ) {
                     Text(
                         if (record.mode == "exam") "${record.score.toInt()} / ${record.maxScore?.toInt() ?: 100}分"
-                        else "${record.score.toInt()}%",
+                        else "${record.score.toInt()} / ${record.totalCount}题",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = scoreColor,

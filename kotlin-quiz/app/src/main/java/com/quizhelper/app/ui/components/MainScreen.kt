@@ -17,7 +17,7 @@ fun MainScreen() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     val showBottomBar = currentRoute in listOf(
-        Screen.Home.route, Screen.History.route, Screen.Settings.route
+        Screen.Home.route, Screen.History.route, Screen.WrongQuestions.route, Screen.Settings.route
     )
 
     Scaffold(

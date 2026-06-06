@@ -23,6 +23,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val singleCount = bankMeta.map { it?.singleCount ?: 0 }
     val multipleCount = bankMeta.map { it?.multipleCount ?: 0 }
     val booleanCount = bankMeta.map { it?.booleanCount ?: 0 }
+    val wrongCount: StateFlow<Int> = repository.allWrongQuestions
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     private val _importResult = MutableSharedFlow<ImportResult>()
     val importResult: SharedFlow<ImportResult> = _importResult.asSharedFlow()

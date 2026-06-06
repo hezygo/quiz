@@ -65,8 +65,36 @@ class QuizRepository(private val context: Context) {
     suspend fun clearAllData() {
         questionDao.deleteAllQuestions()
         questionDao.deleteBankMeta()
+        questionDao.deleteAllWrongQuestions()
         historyDao.deleteAllHistory()
         log.i("全部数据已清除")
+    }
+
+    // ---- Wrong Questions ----
+
+    val allWrongQuestions: Flow<List<WrongQuestion>> = questionDao.getAllWrongQuestionsFlow()
+
+    suspend fun getWrongQuestionsList(): List<Question> = questionDao.getWrongQuestionsList()
+    suspend fun getWrongQuestionCount(): Int = questionDao.getWrongQuestionCount()
+
+    suspend fun addToWrongQuestions(questionId: Long) {
+        val existing = questionDao.getWrongQuestionByQuestionId(questionId)
+        if (existing != null) {
+            questionDao.insertWrongQuestion(existing.copy(
+                wrongCount = existing.wrongCount + 1,
+                lastWrongTime = System.currentTimeMillis()
+            ))
+        } else {
+            questionDao.insertWrongQuestion(WrongQuestion(questionId = questionId))
+        }
+    }
+
+    suspend fun removeFromWrongQuestions(questionId: Long) {
+        questionDao.deleteWrongQuestion(questionId)
+    }
+
+    suspend fun clearAllWrongQuestions() {
+        questionDao.deleteAllWrongQuestions()
     }
 
     // ---- History ----
@@ -107,6 +135,7 @@ class QuizRepository(private val context: Context) {
     suspend fun clearEverything() {
         questionDao.deleteAllQuestions()
         questionDao.deleteBankMeta()
+        questionDao.deleteAllWrongQuestions()
         historyDao.deleteAllHistory()
     }
 }

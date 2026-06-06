@@ -90,12 +90,12 @@ object ExcelParser {
             val rawAnswer = row.getOrElse(colMap.answer) { "" }
             val answer = parseAnswer(rawAnswer, options.size)
 
-            val typeRaw = row.getOrElse(colMap.type) { "" }
+            // 根据实际选项数量和答案数量推导题型，忽略 Excel 中的"题型"列
+            val nonBlankCount = options.count { it.isNotBlank() }
             val type = when {
-                typeRaw.contains("判断") -> QuestionType.BOOLEAN
-                typeRaw.contains("多选") -> QuestionType.MULTIPLE
-                answer.size > 1 -> QuestionType.MULTIPLE
-                else -> QuestionType.SINGLE
+                nonBlankCount <= 2 -> QuestionType.BOOLEAN   // 只有2个有效选项 → 判断题
+                answer.size == 1 -> QuestionType.SINGLE      // 超过2个选项但只有1个正确答案 → 单选题
+                else -> QuestionType.MULTIPLE                // 多个正确答案 → 多选题
             }
 
             if (answer.isEmpty() && rawAnswer.isNotBlank()) {

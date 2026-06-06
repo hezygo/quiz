@@ -31,6 +31,8 @@ import com.quizhelper.app.util.TimeUtils
 fun QuizScreen(
     navController: NavController,
     mode: String = "practice",
+    practiceType: String = "random",
+    source: String = "all",
     viewModel: QuizViewModel = viewModel()
 ) {
     val question by viewModel.currentQuestion.collectAsState()
@@ -48,7 +50,7 @@ fun QuizScreen(
         if (!started) {
             started = true
             if (mode == "exam") viewModel.startExam()
-            else viewModel.startPractice()
+            else viewModel.startPractice(random = practiceType == "random", source = source)
         }
     }
 
@@ -73,7 +75,7 @@ fun QuizScreen(
             },
             onRetry = {
                 if (result!!.mode == QuizMode.EXAM) viewModel.startExam()
-                else viewModel.startPractice()
+                else viewModel.startPractice(random = practiceType == "random", source = source)
             },
             onHome = {
                 navController.navigate(Screen.Home.route) {
@@ -438,14 +440,26 @@ fun ResultContent(
             Text("考试完成！", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Gray800)
             Spacer(Modifier.height(16.dp))
 
+            // Score circle for exam (point-based)
             ScoreCircle(
                 score = result.score,
                 maxScore = result.maxScore ?: 100.0
             )
 
+            Spacer(Modifier.height(12.dp))
+
+            // Correct rate text
+            val isPass = result.correctRate >= 60
+            Text(
+                "正确率 ${result.correctRate.toInt()}%",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (isPass) Green600 else Red500
+            )
+
             Spacer(Modifier.height(16.dp))
 
-            // Breakdown
+            // Breakdown by type
             if (result.breakdown != null) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     BreakdownItem("单选题", result.breakdown.single, Blue600, Blue50)
@@ -460,7 +474,21 @@ fun ResultContent(
             Text("练习完成！", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Gray800)
             Spacer(Modifier.height(16.dp))
 
-            ScoreCircle(score = result.score)
+            // Score circle for practice (point-based)
+            ScoreCircle(
+                score = result.score,
+                maxScore = result.maxScore ?: result.totalCount.toDouble()
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            // Correct rate
+            Text(
+                "正确率 ${result.correctRate.toInt()}%",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (result.correctRate >= 60) Green600 else Red500
+            )
 
             Spacer(Modifier.height(16.dp))
         }

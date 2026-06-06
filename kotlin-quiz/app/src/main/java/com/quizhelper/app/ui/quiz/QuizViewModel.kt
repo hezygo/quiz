@@ -43,10 +43,18 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
     private val _isReady = MutableStateFlow(false)
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
 
-    fun startPractice(random: Boolean = true) {
+    /** 当前练习来源: "all" 全部题目, "wrong" 错题集 */
+    private var questionSource: String = "all"
+
+    fun startPractice(random: Boolean = true, source: String = "all") {
+        questionSource = source
         _isReady.value = false
         viewModelScope.launch {
-            val questions = repository.getAllQuestionsList()
+            val questions = if (source == "wrong") {
+                repository.getWrongQuestionsList()
+            } else {
+                repository.getAllQuestionsList()
+            }
             if (questions.isEmpty()) { _isReady.value = true; return@launch }
             _session = QuizEngine.createSession(questions, random = random, mode = QuizMode.PRACTICE)
             refreshFromSession()
@@ -89,12 +97,14 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
             if (_session?.mode == QuizMode.EXAM) {
                 val s = _session ?: return
                 QuizEngine.submitAnswer(s, listOf(index))
+                val isCorrect = QuizEngine.judge(listOf(index), q.getAnswerList())
                 _judgment.value = Judgment(
-                    isCorrect = QuizEngine.judge(listOf(index), q.getAnswerList()),
+                    isCorrect = isCorrect,
                     correctAnswer = q.getAnswerList(),
                     questionId = q.id
                 )
                 refreshFromSession()
+                recordWrongQuestion(q.id, isCorrect)
             }
         } else {
             if (index in current) current.remove(index) else current.add(index)
@@ -102,12 +112,14 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
             if (_session?.mode == QuizMode.EXAM) {
                 val s = _session ?: return
                 QuizEngine.submitAnswer(s, current)
+                val isCorrect = QuizEngine.judge(current, q.getAnswerList())
                 _judgment.value = Judgment(
-                    isCorrect = QuizEngine.judge(current, q.getAnswerList()),
+                    isCorrect = isCorrect,
                     correctAnswer = q.getAnswerList(),
                     questionId = q.id
                 )
                 refreshFromSession()
+                recordWrongQuestion(q.id, isCorrect)
             }
         }
     }
@@ -119,6 +131,7 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
         val result = QuizEngine.submitAnswer(s, selected)
         _judgment.value = result
         refreshFromSession()
+        recordWrongQuestion(result.questionId, result.isCorrect)
     }
 
     fun goNext() {
@@ -128,11 +141,13 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
             val selected = _selectedAnswers.value
             if (selected.isNotEmpty() && !s.answers.containsKey(q.id)) {
                 QuizEngine.submitAnswer(s, selected)
+                val isCorrect = QuizEngine.judge(selected, q.getAnswerList())
                 _judgment.value = Judgment(
-                    isCorrect = QuizEngine.judge(selected, q.getAnswerList()),
+                    isCorrect = isCorrect,
                     correctAnswer = q.getAnswerList(),
                     questionId = q.id
                 )
+                recordWrongQuestion(q.id, isCorrect)
             }
         }
         val hasMore = QuizEngine.nextQuestion(s)
@@ -165,6 +180,19 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             repository.saveResult(result, s.questions)
+        }
+    }
+
+    /**
+     * 自动记录错题：答错时加入错题集；在错题集练习中答对则移出错题集
+     */
+    private fun recordWrongQuestion(questionId: Long, isCorrect: Boolean) {
+        viewModelScope.launch {
+            if (!isCorrect) {
+                repository.addToWrongQuestions(questionId)
+            } else if (questionSource == "wrong") {
+                repository.removeFromWrongQuestions(questionId)
+            }
         }
     }
 

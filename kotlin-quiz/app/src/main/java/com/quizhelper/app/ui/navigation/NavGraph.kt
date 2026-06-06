@@ -13,6 +13,7 @@ import com.quizhelper.app.ui.history.HistoryScreen
 import com.quizhelper.app.ui.quiz.QuizScreen
 import com.quizhelper.app.ui.quiz.ResultScreen
 import com.quizhelper.app.ui.settings.SettingsScreen
+import com.quizhelper.app.ui.wrong.WrongQuestionsScreen
 
 @Composable
 fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -22,13 +23,16 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
         }
         composable(
             route = Screen.Quiz.route,
-            arguments = listOf(navArgument("mode") {
-                type = NavType.StringType
-                defaultValue = "practice"
-            })
+            arguments = listOf(
+                navArgument("mode") { type = NavType.StringType; defaultValue = "practice" },
+                navArgument("practiceType") { type = NavType.StringType; defaultValue = "random" },
+                navArgument("source") { type = NavType.StringType; defaultValue = "all" }
+            )
         ) { backStackEntry ->
             val mode = backStackEntry.arguments?.getString("mode") ?: "practice"
-            QuizScreen(navController = navController, mode = mode)
+            val practiceType = backStackEntry.arguments?.getString("practiceType") ?: "random"
+            val source = backStackEntry.arguments?.getString("source") ?: "all"
+            QuizScreen(navController = navController, mode = mode, practiceType = practiceType, source = source)
         }
         composable(
             route = Screen.Result.route,
@@ -46,6 +50,9 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
         ) { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id") ?: ""
             HistoryDetailScreen(navController = navController, recordId = id)
+        }
+        composable(Screen.WrongQuestions.route) {
+            WrongQuestionsScreen(navController = navController)
         }
         composable(Screen.Settings.route) {
             SettingsScreen(navController = navController)

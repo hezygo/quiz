@@ -1,9 +1,11 @@
 package com.quizhelper.app.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.Settings
@@ -21,6 +23,7 @@ data class BottomNavItem(
 
 val bottomNavItems = listOf(
     BottomNavItem("首页", Screen.Home.route, Icons.Filled.Home, Icons.Outlined.Home),
+    BottomNavItem("错题", Screen.WrongQuestions.route, Icons.Filled.Book, Icons.Outlined.Book),
     BottomNavItem("历史", Screen.History.route, Icons.Filled.List, Icons.Outlined.List),
     BottomNavItem("设置", Screen.Settings.route, Icons.Filled.Settings, Icons.Outlined.Settings)
 )

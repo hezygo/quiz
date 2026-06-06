@@ -30,8 +30,9 @@ data class QuizResult(
     val totalCount: Int,
     val answeredCount: Int,
     val correctCount: Int,
-    val score: Double,
-    val maxScore: Double? = null,
+    val score: Double,          // 得分（练习: 正确题数; 考试: 正确题数×0.5）
+    val maxScore: Double? = null, // 满分（练习: 总题数; 考试: 总题数×0.5）
+    val correctRate: Double = 0.0, // 正确率百分比
     val durationSeconds: Int,
     val breakdown: ExamBreakdown? = null,
     val details: List<AnswerDetail>

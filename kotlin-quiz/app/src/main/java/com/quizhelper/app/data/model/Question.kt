@@ -2,6 +2,8 @@ package com.quizhelper.app.data.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 enum class QuestionType {
@@ -50,4 +52,23 @@ data class QuestionBankMeta(
     @ColumnInfo(name = "boolean_count") val booleanCount: Int = 0,
     @ColumnInfo(name = "import_time") val importTime: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "version") val version: Int = 1
+)
+
+@Entity(
+    tableName = "wrong_questions",
+    foreignKeys = [
+        ForeignKey(
+            entity = Question::class,
+            parentColumns = ["id"],
+            childColumns = ["question_id"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("question_id")]
+)
+data class WrongQuestion(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "question_id") val questionId: Long,
+    @ColumnInfo(name = "wrong_count") val wrongCount: Int = 1,
+    @ColumnInfo(name = "last_wrong_time") val lastWrongTime: Long = System.currentTimeMillis()
 )

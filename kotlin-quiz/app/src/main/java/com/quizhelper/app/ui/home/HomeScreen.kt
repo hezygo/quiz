@@ -31,6 +31,7 @@ fun HomeScreen(
 ) {
     val bankMeta by viewModel.bankMeta.collectAsState()
     val isImporting by viewModel.isImporting.collectAsState()
+    val wrongCount by viewModel.wrongCount.collectAsState()
     val hasBank = bankMeta != null
 
     var message by remember { mutableStateOf<String?>(null) }
@@ -163,20 +164,43 @@ fun HomeScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Start button
-            Button(
-                onClick = {
-                    navController.navigate(Screen.Quiz.createRoute("practice")) {
-                        launchSingleTop = true
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue600)
+            // Practice mode selection
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
-                Text("🚀 开始练习", fontSize = 18.sp)
+                Column(Modifier.padding(16.dp)) {
+                    Text("📖 练习模式", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
+                    Spacer(Modifier.height(12.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Button(
+                            onClick = {
+                                navController.navigate(Screen.Quiz.createRoute("practice", "sequential")) {
+                                    launchSingleTop = true
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Blue600)
+                        ) {
+                            Text("📖 顺序练习", fontSize = 14.sp)
+                        }
+                        Button(
+                            onClick = {
+                                navController.navigate(Screen.Quiz.createRoute("practice", "random")) {
+                                    launchSingleTop = true
+                                }
+                            },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Green600)
+                        ) {
+                            Text("🔀 随机练习", fontSize = 14.sp)
+                        }
+                    }
+                }
             }
 
             Spacer(Modifier.height(16.dp))
@@ -210,6 +234,59 @@ fun HomeScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = Amber600)
                     ) {
                         Text("🏆 开始考试", fontSize = 16.sp)
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Wrong questions section
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("📕 错题集", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
+                        if (wrongCount > 0) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = Red50
+                            ) {
+                                Text(
+                                    "$wrongCount 题待复习",
+                                    fontSize = 12.sp,
+                                    color = Red600,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = {
+                            navController.navigate(Screen.WrongQuestions.route) {
+                                launchSingleTop = true
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (wrongCount > 0) Red500 else Gray200
+                        )
+                    ) {
+                        Text(
+                            if (wrongCount > 0) "📕 查看错题" else "暂无错题",
+                            fontSize = 14.sp,
+                            color = if (wrongCount > 0) White else Gray500
+                        )
                     }
                 }
             }

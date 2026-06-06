@@ -63,9 +63,11 @@ object QuizEngine {
     fun computeScore(session: QuizSession): ScoreResult {
         val answeredCount = session.answers.size
         val correctCount = countCorrect(session)
-        val score = if (answeredCount > 0) (correctCount.toDouble() / answeredCount * 100).roundToInt().toDouble() else 0.0
+        val points = correctCount.toDouble()
+        val maxPoints = session.questions.size.toDouble()
+        val correctRate = if (answeredCount > 0) (correctCount.toDouble() / answeredCount * 100).roundToInt().toDouble() else 0.0
         val duration = ((session.endTime ?: System.currentTimeMillis()) - session.startTime) / 1000
-        return ScoreResult(session.questions.size, answeredCount, correctCount, score, duration.toInt())
+        return ScoreResult(session.questions.size, answeredCount, correctCount, points, maxPoints, correctRate, duration.toInt())
     }
 
     fun buildResult(session: QuizSession): QuizResult {
@@ -78,6 +80,7 @@ object QuizEngine {
             sessionId = session.id, mode = QuizMode.PRACTICE,
             totalCount = score.totalCount, answeredCount = score.answeredCount,
             correctCount = score.correctCount, score = score.score,
+            maxScore = score.maxScore, correctRate = score.correctRate,
             durationSeconds = score.durationSeconds, details = details
         )
     }
@@ -124,16 +127,18 @@ object QuizEngine {
             val q = session.questions.find { it.id == qId }!!
             AnswerDetail(qId, userAns, judge(userAns, q.getAnswerList()))
         }
+        val correctRate = if (score.totalCount > 0) (score.correctCount.toDouble() / score.totalCount * 100).roundToInt().toDouble() else 0.0
         return QuizResult(
             sessionId = session.id, mode = QuizMode.EXAM,
             totalCount = score.totalCount, answeredCount = score.answeredCount,
             correctCount = score.correctCount, score = score.examScore,
-            maxScore = score.maxScore, durationSeconds = score.durationSeconds,
+            maxScore = score.maxScore, correctRate = correctRate,
+            durationSeconds = score.durationSeconds,
             breakdown = score.breakdown, details = details
         )
     }
 }
 
 data class ProgressInfo(val current: Int, val total: Int, val answered: Int, val unanswered: Int)
-data class ScoreResult(val totalCount: Int, val answeredCount: Int, val correctCount: Int, val score: Double, val durationSeconds: Int)
+data class ScoreResult(val totalCount: Int, val answeredCount: Int, val correctCount: Int, val score: Double, val maxScore: Double, val correctRate: Double, val durationSeconds: Int)
 data class ExamScoreResult(val totalCount: Int, val answeredCount: Int, val correctCount: Int, val examScore: Double, val maxScore: Double, val durationSeconds: Int, val breakdown: ExamBreakdown)

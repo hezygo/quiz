@@ -68,24 +68,14 @@ jobs:
           mkdir -p ~/.android
           keytool -genkey -v -keystore ~/.android/debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=CI, OU=CI, O=CI, L=CI, S=CI, C=US"
 
-      - name: Build Debug APK
-        run: cd kotlin-quiz && ./gradlew assembleDebug
-
       - name: Build Release APK
         run: cd kotlin-quiz && ./gradlew assembleRelease
-
-      - name: Upload Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-app-debug
-          path: kotlin-quiz/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: native-app-release
-          path: kotlin-quiz/app/build/outputs/apk/release/app-release.apk
+          path: kotlin-quiz/app/build/outputs/apk/release/*.apk
           retention-days: 30
 
   # ─── WebApp + Capacitor 壳工程（原有） ──────────────────────────
@@ -169,7 +159,6 @@ jobs:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: Release ${{ steps.tag.outputs.tag }}
           files: |
-            native-app-debug/app-debug.apk
-            native-app-release/app-release.apk
-            capacitor-app-debug/app-debug.apk
+            native-app-release/*.apk
+            capacitor-app-debug/*.apk
           generate_release_notes: true

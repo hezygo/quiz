@@ -185,6 +185,90 @@ fun ScoreStat(label: String, value: String, modifier: Modifier = Modifier) {
     }
 }
 
+// ═══════════════════════════════════════════════
+//  统一按钮组件
+// ═══════════════════════════════════════════════
+
+@Composable
+fun PrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    containerColor: Color = Blue600,
+    textColor: Color = White,
+    fontSize: Int = 15
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.height(48.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = textColor,
+            disabledContainerColor = Gray200,
+            disabledContentColor = Gray400
+        ),
+        content = { Text(text, fontSize = fontSize.sp) }
+    )
+}
+
+@Composable
+fun SmallButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    containerColor: Color = Blue600,
+    textColor: Color = White,
+    fontSize: Int = 13
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.height(40.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = textColor,
+            disabledContainerColor = Gray200,
+            disabledContentColor = Gray400
+        ),
+        content = { Text(text, fontSize = fontSize.sp) }
+    )
+}
+
+@Composable
+fun SecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    textColor: Color = Gray700,
+    fontSize: Int = 14
+) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.height(48.dp),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, if (enabled) Gray300 else Gray100),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor),
+        content = { Text(text, fontSize = fontSize.sp) }
+    )
+}
+
+@Composable
+fun BackButton(
+    text: String = "← 返回",
+    onClick: () -> Unit
+) {
+    TextButton(onClick = onClick) {
+        Text(text, fontSize = 14.sp, color = Gray500)
+    }
+}
+
 @Composable
 fun ConfirmDialog(
     title: String,

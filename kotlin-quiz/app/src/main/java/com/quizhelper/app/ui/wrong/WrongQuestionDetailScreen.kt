@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.quizhelper.app.data.model.Question
-import com.quizhelper.app.ui.components.QuestionTypeTag
+import com.quizhelper.app.ui.components.*
 import com.quizhelper.app.ui.theme.*
 
 @Composable

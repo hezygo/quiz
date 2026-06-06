@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.quizhelper.app.ui.components.ConfirmDialog
+import com.quizhelper.app.ui.components.*
 import com.quizhelper.app.ui.theme.*
 import com.quizhelper.app.ui.navigation.Screen
 import com.quizhelper.app.util.TimeUtils
@@ -93,7 +93,8 @@ fun HomeScreen(
             )
             Spacer(Modifier.height(32.dp))
 
-            Button(
+            PrimaryButton(
+                text = if (isImporting) "正在解析..." else "📥 导入题库",
                 onClick = {
                     if (hasBank) showConfirmDialog = true
                     else filePickerLauncher.launch(arrayOf(
@@ -102,24 +103,9 @@ fun HomeScreen(
                     ))
                 },
                 enabled = !isImporting,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue600)
-            ) {
-                if (isImporting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = White,
-                        strokeWidth = 2.dp
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("正在解析...", fontSize = 16.sp)
-                } else {
-                    Text("📥 导入题库", fontSize = 16.sp)
-                }
-            }
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = Blue600
+            )
             Spacer(Modifier.height(8.dp))
             Text(
                 "支持 .xlsx / .xls 格式 · 所有数据仅存储于本地",
@@ -175,30 +161,26 @@ fun HomeScreen(
                     Text("📖 练习模式", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
                     Spacer(Modifier.height(12.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Button(
+                        SmallButton(
+                            text = "📖 顺序练习",
                             onClick = {
                                 navController.navigate(Screen.Quiz.createRoute("practice", "sequential")) {
                                     launchSingleTop = true
                                 }
                             },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Blue600)
-                        ) {
-                            Text("📖 顺序练习", fontSize = 14.sp)
-                        }
-                        Button(
+                            modifier = Modifier.weight(1f),
+                            containerColor = Blue600
+                        )
+                        SmallButton(
+                            text = "🔀 随机练习",
                             onClick = {
                                 navController.navigate(Screen.Quiz.createRoute("practice", "random")) {
                                     launchSingleTop = true
                                 }
                             },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Green600)
-                        ) {
-                            Text("🔀 随机练习", fontSize = 14.sp)
-                        }
+                            modifier = Modifier.weight(1f),
+                            containerColor = Green600
+                        )
                     }
                 }
             }
@@ -223,18 +205,17 @@ fun HomeScreen(
                     Spacer(Modifier.height(8.dp))
                     Text("限时 100 分钟，满分 100 分", fontSize = 11.sp, color = Gray400, modifier = Modifier.align(Alignment.CenterHorizontally))
                     Spacer(Modifier.height(12.dp))
-                    Button(
+                    SmallButton(
+                        text = "🏆 开始考试",
                         onClick = {
                             navController.navigate(Screen.Quiz.createRoute("exam")) {
                                 launchSingleTop = true
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Amber600)
-                    ) {
-                        Text("🏆 开始考试", fontSize = 16.sp)
-                    }
+                        modifier = Modifier.fillMaxWidth(),
+                        containerColor = Amber600,
+                        fontSize = 15
+                    )
                 }
             }
 
@@ -270,37 +251,28 @@ fun HomeScreen(
                         }
                     }
                     Spacer(Modifier.height(12.dp))
-                    Button(
+                    SmallButton(
+                        text = if (wrongCount > 0) "📕 查看错题" else "暂无错题",
                         onClick = {
                             navController.navigate(Screen.WrongQuestions.route) {
                                 launchSingleTop = true
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (wrongCount > 0) Red500 else Gray200
-                        )
-                    ) {
-                        Text(
-                            if (wrongCount > 0) "📕 查看错题" else "暂无错题",
-                            fontSize = 14.sp,
-                            color = if (wrongCount > 0) White else Gray500
-                        )
-                    }
+                        modifier = Modifier.fillMaxWidth(),
+                        containerColor = if (wrongCount > 0) Red500 else Gray200,
+                        textColor = if (wrongCount > 0) White else Gray500
+                    )
                 }
             }
 
             Spacer(Modifier.height(16.dp))
 
             // Secondary buttons
-            OutlinedButton(
+            SecondaryButton(
+                text = "📊 历史记录",
                 onClick = { navController.navigate("history") { launchSingleTop = true } },
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("📊 历史记录", color = Gray700)
-            }
+                modifier = Modifier.fillMaxWidth()
+            )
             Spacer(Modifier.height(8.dp))
 
             TextButton(

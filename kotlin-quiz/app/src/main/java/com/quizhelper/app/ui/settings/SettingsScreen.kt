@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.quizhelper.app.ui.components.ConfirmDialog
+import com.quizhelper.app.ui.components.*
 import com.quizhelper.app.ui.theme.*
 import com.quizhelper.app.util.TimeUtils
 
@@ -93,19 +93,14 @@ fun SettingsScreen(
                         Text("清空历史记录", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Gray700)
                         Text("保留题库，仅删除练习记录", fontSize = 12.sp, color = Gray400)
                     }
-                    Button(
+                    SmallButton(
+                        text = "清空",
                         onClick = { showClearHistoryDialog = true },
                         enabled = historyList.isNotEmpty(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Red50,
-                            contentColor = Red500,
-                            disabledContainerColor = Gray100,
-                            disabledContentColor = Gray300
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("清空")
-                    }
+                        containerColor = Red50,
+                        textColor = Red500,
+                        fontSize = 13
+                    )
                 }
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Gray100)
@@ -120,16 +115,13 @@ fun SettingsScreen(
                         Text("清除全部数据", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Gray700)
                         Text("删除题库和所有历史记录", fontSize = 12.sp, color = Gray400)
                     }
-                    Button(
+                    SmallButton(
+                        text = "清除",
                         onClick = { showClearAllDialog = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Red50,
-                            contentColor = Red500
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("清除")
-                    }
+                        containerColor = Red50,
+                        textColor = Red500,
+                        fontSize = 13
+                    )
                 }
             }
         }

@@ -20,8 +20,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.quizhelper.app.data.model.Question
 import com.quizhelper.app.data.model.QuestionType
-import com.quizhelper.app.ui.components.ConfirmDialog
-import com.quizhelper.app.ui.components.QuestionTypeTag
+import com.quizhelper.app.ui.components.*
 import com.quizhelper.app.ui.navigation.Screen
 import com.quizhelper.app.ui.theme.*
 
@@ -87,8 +86,8 @@ fun WrongQuestionsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Practice wrong questions
-                Button(
+                SmallButton(
+                    text = "🔁 练习错题",
                     onClick = {
                         navController.navigate(Screen.Quiz.createRoute(
                             mode = "practice",
@@ -98,14 +97,11 @@ fun WrongQuestionsScreen(
                             launchSingleTop = true
                         }
                     },
-                    modifier = Modifier.weight(1f).height(44.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Red500)
-                ) {
-                    Text("🔁 练习错题", fontSize = 14.sp)
-                }
-                // Sequential practice
-                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    containerColor = Red500
+                )
+                SecondaryButton(
+                    text = "📖 顺序练习",
                     onClick = {
                         navController.navigate(Screen.Quiz.createRoute(
                             mode = "practice",
@@ -115,11 +111,8 @@ fun WrongQuestionsScreen(
                             launchSingleTop = true
                         }
                     },
-                    modifier = Modifier.weight(1f).height(44.dp),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text("📖 顺序练习", fontSize = 14.sp, color = Gray600)
-                }
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             Spacer(Modifier.height(8.dp))

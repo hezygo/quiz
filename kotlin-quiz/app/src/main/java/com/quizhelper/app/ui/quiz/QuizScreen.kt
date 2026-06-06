@@ -25,6 +25,7 @@ import com.quizhelper.app.ui.navigation.Screen
 import com.quizhelper.app.ui.theme.*
 import com.quizhelper.app.util.ProgressInfo
 import com.quizhelper.app.util.TimeUtils
+import com.quizhelper.app.util.Encouragement
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -360,22 +361,21 @@ private fun QuizBottomBar(
 
             // Center action button
             if (isExam) {
-                // 交卷按钮已移至右上角
                 Spacer(Modifier.width(1.dp))
             } else if (isMulti && !isAnswered) {
-                // 多选题未答 → 显示"提交答案"按钮
                 Button(
                     onClick = onSubmit,
                     enabled = canSubmit,
+                    modifier = Modifier.height(40.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Purple600)
                 ) {
                     Text("提交答案", fontSize = 13.sp)
                 }
             } else if (isAnswered) {
-                // Already answered: show next/continue
                 Button(
                     onClick = onNext,
+                    modifier = Modifier.height(40.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isSingle) Green600 else Purple600
@@ -384,10 +384,10 @@ private fun QuizBottomBar(
                     Text(if (progress.current >= progress.total) "完成" else "下一题 →", fontSize = 13.sp)
                 }
             } else {
-                // Not answered (SINGLE/BOOLEAN): click to auto-submit and advance
                 Button(
                     onClick = onNext,
                     enabled = canSubmit,
+                    modifier = Modifier.height(40.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Blue600)
                 ) {
@@ -414,6 +414,9 @@ fun ResultContent(
     onRetry: () -> Unit,
     onHome: () -> Unit
 ) {
+    val encouragement = remember { Encouragement.random() }
+    var easterEggMessage by remember { mutableStateOf<String?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -425,11 +428,19 @@ fun ResultContent(
         Spacer(Modifier.height(32.dp))
 
         if (result.mode == QuizMode.EXAM) {
-            Text("🏆", fontSize = 48.sp)
+            // 彩蛋触发：点击考试完成图标
+            Text(
+                "🏆",
+                fontSize = 48.sp,
+                modifier = Modifier.clickable {
+                    if (Encouragement.checkEasterEgg()) {
+                        easterEggMessage = Encouragement.EASTER_EGG_MESSAGE
+                    }
+                }
+            )
             Text("考试完成！", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Gray800)
             Spacer(Modifier.height(16.dp))
 
-            // Score display
             val isPass = result.correctRate >= 60
             ScoreCircle(
                 score = result.score,
@@ -438,7 +449,6 @@ fun ResultContent(
 
             Spacer(Modifier.height(12.dp))
 
-            // Correct rate text
             Text(
                 "正确率 ${result.correctRate.toInt()}%",
                 fontSize = 16.sp,
@@ -448,7 +458,6 @@ fun ResultContent(
 
             Spacer(Modifier.height(16.dp))
 
-            // Breakdown by type
             if (result.breakdown != null) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     BreakdownItem("单选题", result.breakdown.single, Blue600, Blue50)
@@ -459,11 +468,19 @@ fun ResultContent(
 
             Spacer(Modifier.height(16.dp))
         } else {
-            Text("🎉", fontSize = 48.sp)
+            // 彩蛋触发：点击练习完成图标
+            Text(
+                "🎉",
+                fontSize = 48.sp,
+                modifier = Modifier.clickable {
+                    if (Encouragement.checkEasterEgg()) {
+                        easterEggMessage = Encouragement.EASTER_EGG_MESSAGE
+                    }
+                }
+            )
             Text("练习完成！", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Gray800)
             Spacer(Modifier.height(16.dp))
 
-            // Score display (correct count out of total)
             ScoreCircle(
                 score = result.score,
                 maxScore = result.maxScore ?: result.totalCount.toDouble()
@@ -471,7 +488,6 @@ fun ResultContent(
 
             Spacer(Modifier.height(12.dp))
 
-            // Correct rate
             Text(
                 "正确率 ${result.correctRate.toInt()}%",
                 fontSize = 16.sp,
@@ -481,6 +497,26 @@ fun ResultContent(
 
             Spacer(Modifier.height(16.dp))
         }
+
+        // Encouragement message
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = if (easterEggMessage != null) Amber50 else Blue50.copy(alpha = 0.6f)
+            )
+        ) {
+            Text(
+                easterEggMessage ?: "💪 $encouragement",
+                modifier = Modifier.padding(16.dp),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (easterEggMessage != null) Amber700 else Blue700,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
 
         // Stats row
         Row(
@@ -493,26 +529,14 @@ fun ResultContent(
             ScoreStat("用时", TimeUtils.formatDuration(result.durationSeconds))
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
-        Button(
-            onClick = onViewDetail,
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("查看详情")
-        }
+        PrimaryButton(text = "📋 查看详情", onClick = onViewDetail)
         Spacer(Modifier.height(8.dp))
-        OutlinedButton(
-            onClick = onRetry,
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("再练一次")
-        }
+        SecondaryButton(text = "🔄 再练一次", onClick = onRetry)
         Spacer(Modifier.height(8.dp))
         TextButton(onClick = onHome) {
-            Text("返回首页", color = Gray400)
+            Text("返回首页", color = Gray400, fontSize = 14.sp)
         }
     }
 }

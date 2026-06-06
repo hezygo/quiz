@@ -12,6 +12,7 @@ import com.quizhelper.app.ui.history.HistoryDetailScreen
 import com.quizhelper.app.ui.history.HistoryScreen
 import com.quizhelper.app.ui.quiz.QuizScreen
 import com.quizhelper.app.ui.quiz.ResultScreen
+import com.quizhelper.app.ui.about.AboutScreen
 import com.quizhelper.app.ui.settings.SettingsScreen
 import com.quizhelper.app.ui.wrong.WrongQuestionDetailScreen
 import com.quizhelper.app.ui.wrong.WrongQuestionsScreen
@@ -63,6 +64,9 @@ fun NavGraph(navController: NavHostController, modifier: Modifier = Modifier) {
         ) { backStackEntry ->
             val questionId = backStackEntry.arguments?.getLong("questionId") ?: 0L
             WrongQuestionDetailScreen(navController = navController, questionId = questionId)
+        }
+        composable(Screen.About.route) {
+            AboutScreen(navController = navController)
         }
         composable(Screen.Settings.route) {
             SettingsScreen(navController = navController)

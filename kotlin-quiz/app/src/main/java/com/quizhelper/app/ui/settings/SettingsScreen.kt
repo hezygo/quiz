@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.quizhelper.app.ui.components.*
+import com.quizhelper.app.ui.navigation.Screen
 import com.quizhelper.app.ui.theme.*
 import com.quizhelper.app.util.TimeUtils
 
@@ -123,6 +124,27 @@ fun SettingsScreen(
                         fontSize = 13
                     )
                 }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // About
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
+            Column(Modifier.padding(20.dp)) {
+                Text("💡 关于", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
+                Spacer(Modifier.height(12.dp))
+                SecondaryButton(
+                    text = "关于墨答",
+                    onClick = { navController.navigate(Screen.About.route) { launchSingleTop = true } },
+                    modifier = Modifier.fillMaxWidth(),
+                    textColor = Blue600
+                )
             }
         }
     }

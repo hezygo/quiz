@@ -5,40 +5,40 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 打开的书本主体（白底） -->
+    <!-- 打开的书本 -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M29,32 L54,27 L79,32 L79,74 L54,80 L29,74 Z"/>
+        android:pathData="M30,30 L54,24 L78,30 L78,74 L54,80 L30,74 Z"/>
 
-    <!-- 书本中缝分割线 -->
+    <!-- 书脊线 -->
     <path
         android:strokeColor="#397DFF"
         android:strokeWidth="2"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M54,25 L54,79"/>
+
+    <!-- 左页文字线 -->
+    <path
+        android:strokeColor="#BFDBFE"
+        android:strokeWidth="2"
         android:strokeLineCap="round"
-        android:pathData="M54,28 L54,79"/>
+        android:pathData="M36,42 L50,42 M36,52 L50,52 M36,62 L48,62"/>
 
-    <!-- 左页文字横线（代表题目） -->
+    <!-- 右页文字线 -->
     <path
-        android:strokeColor="#B3CCFF"
-        android:strokeWidth="1.5"
+        android:strokeColor="#BFDBFE"
+        android:strokeWidth="2"
         android:strokeLineCap="round"
-        android:pathData="M36,41 H50 M36,50 H50 M36,59 H49"/>
+        android:pathData="M58,42 L72,42 M58,52 L72,52 M60,62 L72,62"/>
 
-    <!-- 右页文字横线 -->
+    <!-- 笔 -->
     <path
-        android:strokeColor="#B3CCFF"
-        android:strokeWidth="1.5"
-        android:strokeLineCap="round"
-        android:pathData="M59,41 H72 M59,50 H71 M59,59 H73"/>
+        android:fillColor="#374151"
+        android:pathData="M76,60 L91,45 L88,42 L73,57 Z"/>
 
-    <!-- 铅笔/笔尖（做题书写元素） -->
+    <!-- 笔尖 -->
     <path
-        android:fillColor="#FF9529"
-        android:pathData="M73,63 L88,49 L85,45 L70,60 Z"/>
-
-    <!-- 铅笔笔尖 -->
-    <path
-        android:fillColor="#593B28"
-        android:pathData="M85,46 L88,49 L82,51 Z"/>
+        android:fillColor="#111827"
+        android:pathData="M90,44 L91,45 L86,49 Z"/>
 
 </vector>

@@ -66,6 +66,15 @@ android {
             )
         }
     }
+
+    applicationVariants.all {
+        val variant = this
+        variant.outputs
+            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+            .forEach { output ->
+                output.outputFileName = "墨答-${variant.versionName}-${variant.buildType.name}.apk"
+            }
+    }
 }
 
 dependencies {

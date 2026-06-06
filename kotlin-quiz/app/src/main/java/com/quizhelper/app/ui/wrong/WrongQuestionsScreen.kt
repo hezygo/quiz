@@ -129,7 +129,7 @@ fun WrongQuestionsScreen(
                 onClick = { showClearDialog = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("🗑 清空错题集", color = Red400, fontSize = 13.sp)
+                Text("🗑 清空错题集", color = Red500, fontSize = 13.sp)
             }
 
             Spacer(Modifier.height(8.dp))

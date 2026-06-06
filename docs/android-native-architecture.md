@@ -40,7 +40,7 @@
 | **目标系统** | Android 16 (API 36) |
 | **开发语言** | Kotlin 100% |
 | **UI 框架** | Jetpack Compose (Material 3) |
-| **数据库** | Room (SQLite) |
+| **数据库** | Room (SQLite, 5 张表) |
 | **架构模式** | MVVM (Model-View-ViewModel) |
 
 ### 与其他模块的关系
@@ -135,6 +135,10 @@ kotlin-quiz/
             │   │   ├── HistoryDetailScreen.kt # 历史详情页
             │   │   └── HistoryViewModel.kt    # 历史 ViewModel
             │   │
+            │   ├── wrong/
+            │   │   ├── WrongQuestionsScreen.kt   # 错题集页面
+            │   │   └── WrongQuestionsViewModel.kt # 错题集 ViewModel
+            │   │
             │   ├── settings/
             │   │   ├── SettingsScreen.kt      # 设置页
             │   │   └── SettingsViewModel.kt   # 设置 ViewModel
@@ -169,7 +173,8 @@ kotlin-quiz/
 
 | 功能 | 描述 |
 |------|------|
-| 随机出题 | 全部题目随机打乱顺序 |
+| 顺序练习 | 按照题库原有顺序逐题练习 |
+| 随机练习 | 全部题目随机打乱顺序练习 |
 | 即时反馈 | 提交答案后立即显示对错和正确答案 |
 | 自动提交 | 单/判断题选择后直接判对错 |
 | 解析查看 | 每道题可查看解析说明 |
@@ -177,6 +182,7 @@ kotlin-quiz/
 | 跳题 | 通过网格点击任意跳转 |
 | 自由导航 | 上一题/下一题，可反复修改已答题 |
 | 进度条 | 顶部进度条显示答题进度 |
+| **得分展示** | 分开显示**得分**（正确题数/总题数）和**正确率**（百分比） |
 
 ### 4.3 考试模式 (Exam)
 
@@ -189,8 +195,22 @@ kotlin-quiz/
 | 分数换算 | 每题 0.5 分，满分 = 总题数 × 0.5 |
 | 分项统计 | 按题型展示正确率（单选/多选/判断） |
 | 限时视觉反馈 | <10 分钟橙色警告，<5 分钟红色危险 |
+| **得分展示** | 分开显示**得分**（分数制）和**正确率**（百分比） |
 
-### 4.4 历史记录
+### 4.4 错题集
+
+| 功能 | 描述 |
+|------|------|
+| 自动记录 | 答题时自动将答错的题目加入错题集 |
+| 错题练习 | 支持随机练习和顺序练习错题 |
+| 逐题移除 | 可在错题集中单独移除题目 |
+| 清空操作 | 一键清空全部错题记录 |
+| 练习自动移出 | 在错题集练习中答对后自动移出错题集 |
+| 底部导航 | 底部栏"错题"入口直达错题集 |
+| 首页入口 | 首页显示错题数量概览及入口 |
+| 数据联动 | 重新导入题库时自动清空错题集（外键级联） |
+
+### 4.5 历史记录
 
 | 功能 | 描述 |
 |------|------|
@@ -201,7 +221,7 @@ kotlin-quiz/
 | 题目筛选 | 全部 / 单选 / 多选 / 判断 分类查看 |
 | 解析回顾 | 详情页每道题都可查看解析 |
 
-### 4.5 设置
+### 4.6 设置
 
 | 功能 | 描述 |
 |------|------|
@@ -218,7 +238,7 @@ kotlin-quiz/
 
 #### Room 数据库 — `AppDatabase.kt`
 
-4 张表，版本 1，使用 `fallbackToDestructiveMigration()`（降级破坏式迁移）。
+5 张表，版本 2，使用 `fallbackToDestructiveMigration()`（降级破坏式迁移）。
 
 | 表名 | 实体 | 主键 | 说明 |
 |------|------|------|------|
@@ -226,6 +246,7 @@ kotlin-quiz/
 | `question_bank_meta` | `QuestionBankMeta` | `id=1` | 题库元数据（单行表） |
 | `history_records` | `HistoryRecord` | `id` (UUID) | 练习/考试历史 |
 | `history_details` | `HistoryDetail` | `id` (自增) | 每道题的答题详情 |
+| `wrong_questions` | `WrongQuestion` | `id` (自增) | 错题记录（FK→questions，CASCADE） |
 
 #### DAO — `QuestionDao.kt`
 
@@ -444,32 +465,46 @@ Logger.create("QuizVM") -> Log tag: "QuizHelper/QuizVM"
 ```kotlin
 sealed class Screen(val route: String) {
     data object Home          : Screen("home")
-    data object Quiz          : Screen("quiz/{mode}")
+    data object Quiz          : Screen("quiz/{mode}?practiceType={practiceType}&source={source}")
     data object Result        : Screen("result/{sessionId}")
     data object History       : Screen("history")
     data object HistoryDetail : Screen("history/{id}")
+    data object WrongQuestions : Screen("wrong_questions")
     data object Settings      : Screen("settings")
 }
 ```
+
+| 参数 | 说明 | 取值 |
+|------|------|------|
+| `mode` | 答题模式 | `practice` / `exam` |
+| `practiceType` | 练习排序方式 | `random` / `sequential` |
+| `source` | 题目来源 | `all` / `wrong` |
 
 ### 导航图 (`NavGraph.kt`)
 
 ```
 home (startDestination)
-├── quiz/{mode}           // mode: "practice" | "exam"
-│   └── result/{sessionId}
+├── quiz/{mode}?practiceType={practiceType}&source={source}
+│   ├── practice/random/all   → 随机练习（全部题）
+│   ├── practice/sequential/all → 顺序练习（全部题）
+│   ├── practice/random/wrong → 随机练习（错题）
+│   ├── practice/sequential/wrong → 顺序练习（错题）
+│   └── exam                  → 模拟考试
+│       └── result/{sessionId}
 ├── history
 │   └── history/{id}
+├── wrong_questions            → 错题集
 └── settings
 ```
 
 ### 底部导航显示逻辑
 
-仅在 `home`、`history`、`settings` 三个一级页面显示底部栏。答题页、结果页、详情页自动隐藏。
+在 `home`、`wrong_questions`、`history`、`settings` 四个一级页面显示底部栏。答题页、结果页、详情页自动隐藏。
 
 ```kotlin
 val showBottomBar = currentRoute in listOf(
-    Screen.Home.route, Screen.History.route, Screen.Settings.route
+    Screen.Home.route, Screen.History.route,
+    Screen.WrongQuestions.route, Screen.Settings.route
 )
 ```
 
@@ -534,7 +569,18 @@ val showBottomBar = currentRoute in listOf(
 | `userAnswer` | 用户答案，`","` 分隔的索引字符串 |
 | `isCorrect` | 是否正确 |
 
-### 8.5 `QuizSession`（答题会话）
+### 8.5 `WrongQuestion`（错题记录）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `id` | Long (PK, 自增) | 主键 |
+| `questionId` | Long (FK) | 关联 `questions.id`，CASCADE 删除 |
+| `wrongCount` | Int | 答错次数累积 |
+| `lastWrongTime` | Long | 最近一次答错时间 |
+
+外键级联：题目重新导入（删除旧题）时，关联的错题记录自动清除。
+
+### 8.6 `QuizSession`（答题会话）
 
 内存数据（不持久化），驱动答题逻辑：
 
@@ -550,7 +596,7 @@ val showBottomBar = currentRoute in listOf(
 | `timeLimitSeconds` | 限时（秒，仅考试模式） |
 | `randomOrder` | 是否随机顺序 |
 
-### 8.6 辅助数据类型
+### 8.7 辅助数据类型
 
 | 类型 | 用途 |
 |------|------|
@@ -572,28 +618,61 @@ val showBottomBar = currentRoute in listOf(
 
 选型理由：POI 体积大（~5MB），增加 APK 体积。xlsx 本质是 ZIP + XML，Android 原生 `ZipInputStream` + `SAXParser` 足以高效解析，且不增加依赖。
 
-### 9.2 题库元数据独立表
+### 9.2 题型自动识别
+
+不再依赖 Excel 中的"题型"列，而是根据实际数据推导：
+
+| 条件 | 判定题型 |
+|------|----------|
+| 有效选项数 ≤ 2 | 判断题 (BOOLEAN) |
+| 有效选项数 > 2 且只有 1 个正确答案 | 单选题 (SINGLE) |
+| 有效选项数 > 2 且多个正确答案 | 多选题 (MULTIPLE) |
+
+此策略兼容各种 Excel 格式，即使题型列缺失也能正确识别。
+
+### 9.3 题库元数据独立表
 
 将 `QuestionBankMeta` 与 `Question` 分离：
 - 避免每次统计都需要 `COUNT` 查询
 - 可通过 Flow 实时监听题库状态变化
 - 单行设计简化查询
 
-### 9.3 导入即覆盖
+### 9.4 导入即覆盖
 
-导入新题库时自动清空历史记录：
-- 保证题目 ID 与历史记录的引用一致性
+导入新题库时自动清空历史记录和错题集：
+- 保证题目 ID 与历史记录/错题的引用一致性
 - 题目更新后旧记录失去意义
+- 错题集通过外键 CASCADE 自动清理
 - 用户操作前有确认弹窗
 
-### 9.4 考试模式逻辑
+### 9.5 考试模式逻辑
 
 - 抽题策略：从全部题目中按类型配额随机抽取（单 60 / 多 100 / 判 40）
 - 每题 0.5 分（使满分接近传统 100 分制）
 - 选即提交：点击选项立即记录答案并评判
 - 不可修改：模拟真实考试环境
 
-### 9.5 颜色系统
+### 9.5 错题集机制
+
+- 采用独立表 (`wrong_questions`) + 外键引用题目表
+- 答错自动加入（未存在则插入，已存在则递增 `wrongCount`）
+- 在错题集练习中答对自动移出（`questionSource == "wrong"` 时）
+- 正常练习中答对不移出，保留错题记录直至用户主动移除
+- CASCADE 外键保证题库重新导入时错题集自动清理
+
+### 9.6 分数分离展示
+
+`QuizResult` 增加 `correctRate` 字段，与 `score` 分开：
+
+| 字段 | 练习模式 | 考试模式 |
+|------|----------|----------|
+| `score` | 正确题数（每题1分） | 正确题数 × 0.5 |
+| `maxScore` | 总题数 | 总题数 × 0.5 |
+| `correctRate` | 正确数/已答数 × 100% | 正确数/总题数 × 100% |
+
+UI 中同时展示"得分 X/Y"和"正确率 X%"，不再混用。
+
+### 9.7 颜色系统
 
 自定义 6 色系（蓝/绿/红/紫/琥珀/灰），每色系 4-8 个色阶，确保：
 - 红绿色盲友好（辅以图标 ✓✗）

@@ -361,14 +361,63 @@ fun TimeWarningDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
+fun ExitConfirmDialog(
+    message: String,
+    confirmText: String = "确定退出",
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("😢 再坚持一下", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = Gray800)
+            }
+        },
+        text = {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(Modifier.height(4.dp))
+                Text(message, fontSize = 15.sp, color = Gray700, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(8.dp))
+                Text("确定要退出吗？", fontSize = 14.sp, color = Gray500, textAlign = TextAlign.Center)
+            }
+        },
+        confirmButton = {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                SmallButton(
+                    text = confirmText,
+                    onClick = onConfirm,
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = Red500,
+                    textColor = White,
+                    fontSize = 14
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth().height(40.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, Gray200),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Gray500)
+                ) {
+                    Text("我再练练", fontSize = 14.sp)
+                }
+            }
+        }
+    )
+}
+
+@Composable
 fun EncouragementDialog(
     result: QuizResult,
     onViewDetail: () -> Unit,
     onRetry: () -> Unit,
     onHome: () -> Unit
 ) {
-    val encouragement = remember { Encouragement.random() }
+    val encouragement = remember { if (Encouragement.rollEasterEgg()) Encouragement.EASTER_EGG_MESSAGE else Encouragement.random() }
     val isPass = result.correctRate >= 60
+    val isEasterEgg = encouragement == Encouragement.EASTER_EGG_MESSAGE
 
     AlertDialog(
         onDismissRequest = onHome,
@@ -419,7 +468,7 @@ fun EncouragementDialog(
                         modifier = Modifier.padding(16.dp),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Blue700,
+                        color = if (isEasterEgg) Amber700 else Blue700,
                         textAlign = TextAlign.Center
                     )
                 }

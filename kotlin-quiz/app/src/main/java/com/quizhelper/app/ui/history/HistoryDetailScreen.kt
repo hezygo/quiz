@@ -40,7 +40,7 @@ fun HistoryDetailScreen(
                 Text("🔍", fontSize = 48.sp)
                 Text("找不到该练习记录", color = Gray400)
                 Spacer(Modifier.height(16.dp))
-                TextButton(onClick = { navController.popBackStack() }) {
+                TextButton(onClick = { navController.navigate("history") { popUpTo("history") { inclusive = true }; launchSingleTop = true } }) {
                     Text("返回历史列表", color = Blue600)
                 }
             }
@@ -57,7 +57,7 @@ fun HistoryDetailScreen(
             .padding(16.dp)
     ) {
         // Back button
-        BackButton(text = "← 返回列表", onClick = { navController.popBackStack() })
+        BackButton(text = "← 返回列表", onClick = { navController.navigate("history") { popUpTo("history") { inclusive = true }; launchSingleTop = true } })
 
         // Score overview
         Card(
@@ -301,7 +301,7 @@ fun HistoryDetailScreen(
         Spacer(Modifier.height(8.dp))
         SecondaryButton(
             text = "返回历史列表",
-            onClick = { navController.popBackStack() },
+            onClick = { navController.navigate("history") { popUpTo("history") { inclusive = true }; launchSingleTop = true } },
             modifier = Modifier.fillMaxWidth(),
             textColor = Blue600,
             fontSize = 15

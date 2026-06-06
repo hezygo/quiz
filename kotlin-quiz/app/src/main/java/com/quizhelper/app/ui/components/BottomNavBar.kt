@@ -41,7 +41,7 @@ fun BottomNavBar(
 ) {
     NavigationBar(
         containerColor = White,
-        tonalElevation = 0.dp
+        tonalElevation = 0.dp,
     ) {
         bottomNavItems.forEach { item ->
             val selected = currentRoute == item.route
@@ -52,13 +52,13 @@ fun BottomNavBar(
                     Icon(
                         imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
                         contentDescription = item.label,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 },
                 label = {
                     Text(
                         item.label,
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                         color = if (selected) Blue600 else Gray500
                     )

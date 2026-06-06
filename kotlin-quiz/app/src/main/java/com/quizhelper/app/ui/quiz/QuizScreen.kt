@@ -49,6 +49,7 @@ fun QuizScreen(
     val isReady by viewModel.isReady.collectAsState()
 
     var showExitConfirm by remember { mutableStateOf(false) }
+    var exitMessage by remember { mutableStateOf(Encouragement.randomRetention()) }
 
     // Start session based on mode
     var started by remember { mutableStateOf(false) }
@@ -105,20 +106,6 @@ fun QuizScreen(
         return
     }
 
-    if (showExitConfirm) {
-        ConfirmDialog(
-            title = "退出考试",
-            message = "确定要退出考试吗？退出后本次答题记录将不会保存。",
-            confirmText = "确定退出",
-            confirmColor = Amber600,
-            onConfirm = {
-                showExitConfirm = false
-                navController.popBackStack()
-            },
-            onDismiss = { showExitConfirm = false }
-        )
-    }
-
     if (showTimeWarning) {
         TimeWarningDialog(onDismiss = { viewModel.dismissTimeWarning() })
     }
@@ -132,10 +119,35 @@ fun QuizScreen(
 
     val session = viewModel.session ?: return
     val isExam = session.mode == QuizMode.EXAM
-    if (isExam) {
-        BackHandler {
-            showExitConfirm = true
+
+    if (showExitConfirm) {
+        if (isExam) {
+            ConfirmDialog(
+                title = "退出考试",
+                message = "确定要退出考试吗？退出后本次答题记录将不会保存。",
+                confirmText = "确定退出",
+                confirmColor = Amber600,
+                onConfirm = {
+                    showExitConfirm = false
+                    navController.popBackStack()
+                },
+                onDismiss = { showExitConfirm = false }
+            )
+        } else {
+            ExitConfirmDialog(
+                message = exitMessage,
+                confirmText = "确定退出",
+                onConfirm = {
+                    showExitConfirm = false
+                    navController.popBackStack()
+                },
+                onDismiss = { showExitConfirm = false }
+            )
         }
+    }
+
+    BackHandler {
+        showExitConfirm = true
     }
     var showGrid by remember { mutableStateOf(false) }
     val isAnswered = judgment != null
@@ -475,7 +487,6 @@ fun ResultContent(
     onRetry: () -> Unit,
     onHome: () -> Unit
 ) {
-    var easterEggMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -487,16 +498,10 @@ fun ResultContent(
     ) {
         Spacer(Modifier.height(24.dp))
 
-        // Title with easter egg trigger
         val titleIcon = if (result.mode == QuizMode.EXAM) "🏆" else "🎉"
         Text(
             titleIcon,
-            fontSize = 40.sp,
-            modifier = Modifier.clickable {
-                if (Encouragement.checkEasterEgg()) {
-                    easterEggMessage = Encouragement.EASTER_EGG_MESSAGE
-                }
-            }
+            fontSize = 40.sp
         )
         Text(
             if (result.mode == QuizMode.EXAM) "考试详情" else "练习详情",
@@ -521,24 +526,6 @@ fun ResultContent(
 
         Spacer(Modifier.height(16.dp))
 
-        // Easter egg banner
-        if (easterEggMessage != null) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Amber50)
-            ) {
-                Text(
-                    easterEggMessage!!,
-                    modifier = Modifier.padding(16.dp),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Amber700,
-                    textAlign = TextAlign.Center
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-        }
 
         // Exam breakdown
         if (result.mode == QuizMode.EXAM && result.breakdown != null) {

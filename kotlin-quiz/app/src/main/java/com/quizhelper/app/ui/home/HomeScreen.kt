@@ -112,6 +112,20 @@ fun HomeScreen(
                 fontSize = 11.sp,
                 color = Gray400
             )
+            Spacer(Modifier.height(12.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Blue50.copy(alpha = 0.5f))
+            ) {
+                Text(
+                    "💡 考试或练习完成后，连续点击 🏆/🎉 图标有惊喜哦！",
+                    modifier = Modifier.padding(14.dp),
+                    fontSize = 12.sp,
+                    color = Blue600,
+                    textAlign = TextAlign.Center
+                )
+            }
         } else {
             // Has question bank
             Text(

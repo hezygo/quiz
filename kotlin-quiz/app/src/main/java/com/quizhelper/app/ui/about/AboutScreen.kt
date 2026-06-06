@@ -18,12 +18,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.quizhelper.app.ui.components.BackButton
+import com.quizhelper.app.ui.components.*
 import com.quizhelper.app.ui.theme.*
 
 @Composable
 fun AboutScreen(navController: NavController) {
     val context = LocalContext.current
+    var showChangelog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -31,7 +32,6 @@ fun AboutScreen(navController: NavController) {
             .background(Gray50)
             .verticalScroll(rememberScrollState())
     ) {
-        // Back bar
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -47,47 +47,92 @@ fun AboutScreen(navController: NavController) {
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
             Text("📖", fontSize = 40.sp)
             Spacer(Modifier.height(4.dp))
             Text("墨答 · v2.2.7", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Gray800)
             Text("优雅刷题，从容作答", fontSize = 13.sp, color = Gray500)
-
             Spacer(Modifier.height(16.dp))
 
-            // Info items - compact
+            AboutClickableItem("📋", "更新日志", "查看各版本变更 →") { showChangelog = true }
+            Spacer(Modifier.height(6.dp))
             AboutClickableItem("📧", "邮箱", "littleboy@example.com") {
-                Intent(Intent.ACTION_SENDTO).apply {
-                    data = Uri.parse("mailto:littleboy@example.com")
-                }.also { context.startActivity(it) }
+                Intent(Intent.ACTION_SENDTO).apply { data = Uri.parse("mailto:littleboy@example.com") }.also { context.startActivity(it) }
             }
             Spacer(Modifier.height(6.dp))
-
             AboutClickableItem("🐙", "GitHub", "github.com/littleboy") {
                 Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/littleboy")).also { context.startActivity(it) }
             }
             Spacer(Modifier.height(6.dp))
-
             AboutClickableItem("📦", "项目地址", "github.com/littleboy/quiz-helper") {
                 Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/littleboy/quiz-helper")).also { context.startActivity(it) }
             }
             Spacer(Modifier.height(6.dp))
-
             AboutItem("👤", "作者", "littleboy")
             Spacer(Modifier.height(6.dp))
-
             AboutItem("📜", "开源协议", "MIT License")
-
             Spacer(Modifier.height(16.dp))
-
-            // Copyright compact
             Text("© 2026 littleboy", fontSize = 12.sp, color = Gray300)
-            Text("本软件仅供学习交流使用", fontSize = 11.sp, color = Gray200)
-
             Spacer(Modifier.height(16.dp))
         }
     }
+
+    if (showChangelog) {
+        ChangelogDialog(onDismiss = { showChangelog = false })
+    }
 }
+
+@Composable
+private fun ChangelogDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(Modifier.height(4.dp))
+                Text("📋 更新日志", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Gray800)
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 400.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                val changelog = buildChangelog()
+                changelog.forEach { (version, date, items) ->
+                    Text(version, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Gray800)
+                    Text(date, fontSize = 11.sp, color = Gray400)
+                    Spacer(Modifier.height(4.dp))
+                    items.forEach { item ->
+                        Text("  $item", fontSize = 12.sp, color = Gray600, lineHeight = 18.sp)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                }
+            }
+        },
+        confirmButton = {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                SmallButton(
+                    text = "关闭",
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = Blue600,
+                    textColor = White,
+                    fontSize = 14
+                )
+            }
+        }
+    )
+}
+
+private fun buildChangelog(): List<Triple<String, String, List<String>>> = listOf(
+    Triple("v2.2.7", "2026-06-07", listOf("🎨 更换小红书风格图标PNG", "🎨 导入页彩蛋提示改为鼓励性文案")),
+    Triple("v2.2.6", "2026-06-07", listOf("🎨 App图标更换为AI生成的PNG图片")),
+    Triple("v2.2.5", "2026-06-07", listOf("🎨 小红书风格：#FF2442暖红底+白色对勾✓+墨滴")),
+    Triple("v2.2.4 ~ v2.0.0", "2026-06-06~07", listOf("🎨 多次图标迭代", "🎨 关于页紧凑化、背景统一", "🚀 新增关于页面、APK自定义命名", "🚀 两种考试模式、练习退出挽留弹窗", "🎨 UI一致性大重构")),
+    Triple("v1.0.0", "2026-06-04", listOf("🎉 初始发布：Kotlin + Jetpack Compose 原生客户端")),
+)
 
 @Composable
 private fun AboutItem(emoji: String, label: String, value: String) {

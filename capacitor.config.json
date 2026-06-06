@@ -1,0 +1,9 @@
+{
+  "appId": "com.quizhelper.app",
+  "appName": "刷题助手",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

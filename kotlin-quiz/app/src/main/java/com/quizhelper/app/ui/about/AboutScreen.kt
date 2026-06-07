@@ -49,7 +49,7 @@ fun AboutScreen(navController: NavController) {
         ) {
             Text("📖", fontSize = 40.sp)
             Spacer(Modifier.height(4.dp))
-            Text("墨答 · v2.3.0", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Gray800)
+            Text("墨答 · v2.3.1", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Gray800)
             Text("优雅刷题，从容作答", fontSize = 13.sp, color = Gray500)
             Spacer(Modifier.height(16.dp))
 
@@ -132,6 +132,19 @@ private fun ChangelogDialog(onDismiss: () -> Unit) {
 
     
     private fun getFullChangelog(): String = """[2.3.0] — 2026-06-07 10:52
+
+🚀 新增功能
+- 关于页信息更新：作者whhomi、Email、GitHub、项目地址、网页版入口
+- 分享功能：考试详情页右上角新增分享按钮，生成成绩长图（含二维码）系统分享
+
+🎨 UI
+- 错题集页两个练习按钮大小一致
+
+🔧 技术改进
+- APK文件名改为英文 moda-
+- 考试完成弹窗4按钮（蓝/绿/紫/灰）颜色区分
+
+[2.3.0] — 2026-06-07 10:52
 
 🚀 新增功能
 - 关于页信息更新：作者whhomi、Email、GitHub、项目地址、网页版入口

@@ -18,6 +18,8 @@ import com.quizhelper.app.data.model.*
 import com.quizhelper.app.ui.components.*
 import com.quizhelper.app.ui.theme.*
 import com.quizhelper.app.util.TimeUtils
+import com.quizhelper.app.util.ShareUtil
+import com.quizhelper.app.util.Encouragement
 
 @Composable
 fun HistoryDetailScreen(
@@ -67,14 +69,36 @@ fun HistoryDetailScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    if (r.mode == "exam") "考试详情" else "练习详情",
-                    fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Gray800)
-                Text(
-                    TimeUtils.formatTimestampFull(r.timestamp),
-                    fontSize = 12.sp,
-                    color = Gray400
-                )
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            if (r.mode == "exam") "考试详情" else "练习详情",
+                            fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Gray800)
+                        if (r.mode == "exam") {
+                            SmallButton(
+                                text = "📤 分享",
+                                onClick = {
+                                    ShareUtil.shareExamResult(
+                                        context = navController.context,
+                                        score = r.score,
+                                        maxScore = r.maxScore ?: 100.0,
+                                        correctRate = if (r.totalCount > 0) (r.correctCount.toDouble() / r.totalCount * 100) else 0.0,
+                                        correctCount = r.correctCount,
+                                        totalCount = r.totalCount,
+                                        durationSeconds = r.duration,
+                                        isPass = r.score >= 60
+                                    )
+                                },
+                                containerColor = Purple600,
+                                textColor = White,
+                                fontSize = 12
+                            )
+                        }
+                    }
+                    Text(
+                        TimeUtils.formatTimestampFull(r.timestamp),
+                        fontSize = 12.sp,
+                        color = Gray400
+                    )
                 Spacer(Modifier.height(16.dp))
 
                 Row(

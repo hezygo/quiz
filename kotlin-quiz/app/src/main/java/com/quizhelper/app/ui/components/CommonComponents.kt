@@ -495,18 +495,7 @@ fun EncouragementDialog(
                     textColor = White,
                     fontSize = 14
                 )
-                Spacer(Modifier.height(8.dp))
-                if (result.mode.name == "EXAM" && onShare != null) {
-                    SmallButton(
-                        text = "📤 分享成绩",
-                        onClick = onShare,
-                        modifier = Modifier.fillMaxWidth(),
-                        containerColor = Purple600,
-                        textColor = White,
-                        fontSize = 14
-                    )
-                    Spacer(Modifier.height(8.dp))
-                }
+
                 OutlinedButton(
                     onClick = onHome,
                     modifier = Modifier.fillMaxWidth().height(48.dp),

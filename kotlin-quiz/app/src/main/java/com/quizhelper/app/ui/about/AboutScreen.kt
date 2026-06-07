@@ -53,7 +53,7 @@ fun AboutScreen(navController: NavController) {
             Text("优雅刷题，从容作答", fontSize = 13.sp, color = Gray500)
             Spacer(Modifier.height(16.dp))
 
-            AboutClickableItem("📋", "更新日志", "GitHub在线查看") {
+            AboutClickableItem("📋", "更新日志", "CHANGELOG") {
                 Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/whhomi/quiz/blob/main/CHANGELOG.md")).also { context.startActivity(it) }
             }
             Spacer(Modifier.height(6.dp))

@@ -226,7 +226,7 @@ fun HistoryDetailScreen(
                     )
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(10.dp),
                         verticalAlignment = Alignment.Top
                     ) {
                         // Icon
@@ -262,7 +262,7 @@ fun HistoryDetailScreen(
                             )
 
                             if (question != null) {
-                                Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(4.dp))
                                 val options = question.getOptionsList()
                                 val correctAns = question.getAnswerList()
                                 val userAns = detail.getUserAnswerList()
@@ -304,7 +304,7 @@ fun HistoryDetailScreen(
                                         shape = RoundedCornerShape(8.dp),
                                         colors = CardDefaults.cardColors(containerColor = Blue50.copy(alpha = 0.5f))
                                     ) {
-                                        Column(Modifier.padding(12.dp)) {
+                                        Column(Modifier.padding(8.dp)) {
                                             Text("💡 解析", fontSize = 11.sp, color = Blue500, fontWeight = FontWeight.Medium)
                                             Text(
                                                 question.analysis,

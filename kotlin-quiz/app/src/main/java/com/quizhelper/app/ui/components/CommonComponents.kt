@@ -475,7 +475,7 @@ fun EncouragementDialog(
                 }
             }
         },
-        confirmButton = {
+                confirmButton = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -487,19 +487,21 @@ fun EncouragementDialog(
                     fontSize = 15
                 )
                 Spacer(Modifier.height(8.dp))
-                SecondaryButton(
+                SmallButton(
                     text = "🔄 再练一次",
                     onClick = onRetry,
                     modifier = Modifier.fillMaxWidth(),
-                    textColor = Blue600
+                    containerColor = Green600,
+                    textColor = White,
+                    fontSize = 14
                 )
                 Spacer(Modifier.height(8.dp))
-                if (onShare != null && result.mode.name == "EXAM") {
+                if (result.mode.name == "EXAM" && onShare != null) {
                     SmallButton(
                         text = "📤 分享成绩",
                         onClick = onShare,
                         modifier = Modifier.fillMaxWidth(),
-                        containerColor = Green500,
+                        containerColor = Purple600,
                         textColor = White,
                         fontSize = 14
                     )

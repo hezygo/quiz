@@ -72,7 +72,7 @@ android {
         variant.outputs
             .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
             .forEach { output ->
-                output.outputFileName = "墨答-${variant.versionName}-${variant.buildType.name}.apk"
+                output.outputFileName = "moda-${variant.versionName}-${variant.buildType.name}.apk"
             }
     }
 }

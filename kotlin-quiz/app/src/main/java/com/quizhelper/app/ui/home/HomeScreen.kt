@@ -131,6 +131,12 @@ fun HomeScreen(
         } else {
             // Has question bank
             val sequentialProgress by viewModel.sequentialProgress.collectAsState()
+            LaunchedEffect(Unit) {
+                while(true) {
+                    delay(5000L)
+                    viewModel.refreshSequentialProgress()
+                }
+            }
             Text(
                 "墨答",
                 fontSize = 24.sp,
@@ -246,6 +252,7 @@ fun HomeScreen(
 
             // Sequential progress section
             if (sequentialProgress != null) {
+                Spacer(Modifier.height(16.dp))
                 val answered = sequentialProgress!!.first
                 val total = sequentialProgress!!.second
                 Card(
@@ -258,7 +265,7 @@ fun HomeScreen(
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Text("📖 顺序练习进度", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
                             Surface(shape = RoundedCornerShape(12.dp), color = Blue50) {
-                                Text("已答 $answered / $total 题", fontSize = 12.sp, color = Blue600, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                                Text("第 $answered / $total 题", fontSize = 12.sp, color = Blue600, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
                             }
                         }
                         Spacer(Modifier.height(12.dp))
@@ -278,6 +285,7 @@ fun HomeScreen(
             }
 
             // Countdown section
+            Spacer(Modifier.height(16.dp))
             var countdownTime by remember { mutableStateOf(System.currentTimeMillis()) }
             LaunchedEffect(Unit) {
                 while(true) {
@@ -321,7 +329,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                    Text("📕 错题集", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
+                        Text("📕 错题集", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
                         if (wrongCount > 0) {
                             Surface(
                                 shape = RoundedCornerShape(12.dp),

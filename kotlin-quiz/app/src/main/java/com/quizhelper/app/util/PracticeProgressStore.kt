@@ -40,7 +40,7 @@ object PracticeProgressStore {
 
     fun getProgressSummary(context: Context): Pair<Int, Int>? {
         val progress = load(context) ?: return null
-        return Pair(progress.answers.size, progress.questions.size)
+        return Pair(progress.currentIndex + 1, progress.questions.size)
     }
 
     fun restoreSession(context: Context, allQuestions: List<Question>): QuizSession? {

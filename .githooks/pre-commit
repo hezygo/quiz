@@ -23,7 +23,7 @@ if [ "$CHANGELOG_STAGED" -eq 0 ]; then
     echo "   → 请在提交前更新 CHANGELOG.md"
     echo ""
     echo "  修改提示（添加到 CHANGELOG.md 顶部）："
-    echo "  ## [x.y.z] — $(date +%Y-%m-%d %H:%M)"
+    echo "  ## [x.y.z] — $(date "+%Y-%m-%d %H:%M")"
     echo ""
     echo "  如果确实不需要更新 CHANGELOG，请强制提交: git commit --no-verify"
     exit 1

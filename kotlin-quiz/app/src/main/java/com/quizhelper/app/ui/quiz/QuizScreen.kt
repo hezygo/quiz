@@ -27,6 +27,8 @@ import com.quizhelper.app.ui.theme.*
 import com.quizhelper.app.util.ProgressInfo
 import com.quizhelper.app.util.TimeUtils
 import com.quizhelper.app.util.Encouragement
+import com.quizhelper.app.util.PracticeProgressStore
+import com.quizhelper.app.util.ShareUtil
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +52,7 @@ fun QuizScreen(
 
     var showExitConfirm by remember { mutableStateOf(false) }
     var exitMessage by remember { mutableStateOf(Encouragement.randomRetention()) }
+    var showResumeDialog by remember { mutableStateOf(false) }
 
     // Start session based on mode
     var started by remember { mutableStateOf(false) }
@@ -57,8 +60,66 @@ fun QuizScreen(
         if (!started) {
             started = true
             if (mode == "exam") viewModel.startExam(examType)
-            else viewModel.startPractice(random = practiceType == "random", source = source)
+            else if (mode == "practice" && practiceType == "sequential") {
+                // Check if there is a saved session to restore
+                showResumeDialog = PracticeProgressStore.hasProgress(navController.context)
+                if (!showResumeDialog) {
+                    viewModel.startPractice(random = false, source = source)
+                }
+            } else {
+                viewModel.startPractice(random = practiceType == "random", source = source)
+            }
         }
+    }
+
+    // Show resume dialog
+    if (showResumeDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showResumeDialog = false
+                viewModel.startPractice(random = false, source = source)
+            },
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("📖", fontSize = 40.sp)
+                    Spacer(Modifier.height(8.dp))
+                    Text("发现上次练习进度", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Gray800)
+                }
+            },
+            text = {
+                Text("检测到您有未完成的顺序练习，是否继续上次的进度？", fontSize = 14.sp, color = Gray600, textAlign = TextAlign.Center)
+            },
+            confirmButton = {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    SmallButton(
+                        text = "继续练习",
+                        onClick = {
+                            showResumeDialog = false
+                            viewModel.startPractice(random = false, source = source, resume = true)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        containerColor = Green600,
+                        textColor = White,
+                        fontSize = 14
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            showResumeDialog = false
+                            PracticeProgressStore.clear(navController.context)
+                            viewModel.startPractice(random = false, source = source)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(40.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, Gray300),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Gray500)
+                    ) {
+                        Text("重新开始", fontSize = 14.sp)
+                    }
+                }
+            }
+        )
     }
 
     if (!isReady) {
@@ -147,6 +208,7 @@ fun QuizScreen(
     }
 
     BackHandler {
+        if (!isExam) viewModel.saveProgress()
         showExitConfirm = true
     }
     var showGrid by remember { mutableStateOf(false) }
@@ -511,7 +573,7 @@ fun ResultContent(
         )
         Spacer(Modifier.height(16.dp))
 
-        val isPass = result.correctRate >= 60
+        val isPass = result.correctRate >= 80
         ScoreCircle(
             score = result.score,
             maxScore = result.maxScore ?: if (result.mode == QuizMode.EXAM) 100.0 else result.totalCount.toDouble()

@@ -148,7 +148,7 @@ fun ScoreCircle(
     modifier: Modifier = Modifier
 ) {
     val percentage = if (maxScore != null && maxScore > 0) (score / maxScore * 100) else score
-    val isPass = percentage >= 60
+    val isPass = percentage >= 80
     val displayText = if (maxScore != null && maxScore > 0) {
         "${score.toInt()}分"
     } else {
@@ -413,10 +413,11 @@ fun EncouragementDialog(
     result: QuizResult,
     onViewDetail: () -> Unit,
     onRetry: () -> Unit,
-    onHome: () -> Unit
+    onHome: () -> Unit,
+    onShare: (() -> Unit)? = null
 ) {
     val encouragement = remember { if (Encouragement.rollEasterEgg()) Encouragement.EASTER_EGG_MESSAGE else Encouragement.random() }
-    val isPass = result.correctRate >= 60
+    val isPass = result.correctRate >= 80
     val isEasterEgg = encouragement == Encouragement.EASTER_EGG_MESSAGE
 
     AlertDialog(
@@ -474,7 +475,7 @@ fun EncouragementDialog(
                 }
             }
         },
-        confirmButton = {
+                confirmButton = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -486,13 +487,15 @@ fun EncouragementDialog(
                     fontSize = 15
                 )
                 Spacer(Modifier.height(8.dp))
-                SecondaryButton(
+                SmallButton(
                     text = "🔄 再练一次",
                     onClick = onRetry,
                     modifier = Modifier.fillMaxWidth(),
-                    textColor = Blue600
+                    containerColor = Green600,
+                    textColor = White,
+                    fontSize = 14
                 )
-                Spacer(Modifier.height(8.dp))
+
                 OutlinedButton(
                     onClick = onHome,
                     modifier = Modifier.fillMaxWidth().height(48.dp),

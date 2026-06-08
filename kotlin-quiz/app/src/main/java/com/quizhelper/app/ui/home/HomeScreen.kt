@@ -22,6 +22,8 @@ import com.quizhelper.app.ui.components.*
 import com.quizhelper.app.ui.theme.*
 import com.quizhelper.app.ui.navigation.Screen
 import com.quizhelper.app.util.TimeUtils
+import com.quizhelper.app.util.ExamCountdown
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,6 +130,13 @@ fun HomeScreen(
             }
         } else {
             // Has question bank
+            val sequentialProgress by viewModel.sequentialProgress.collectAsState()
+            LaunchedEffect(Unit) {
+                while(true) {
+                    delay(5000L)
+                    viewModel.refreshSequentialProgress()
+                }
+            }
             Text(
                 "墨答",
                 fontSize = 24.sp,
@@ -209,9 +218,10 @@ fun HomeScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("📝 模拟考试", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
-                    Spacer(Modifier.height(8.dp))
-                    Text("限时 100 分钟 · 满分 100 分", fontSize = 12.sp, color = Gray400)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text("📝 模拟考试", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
+                        Text("限时 100 分钟 · 满分 100 分", fontSize = 11.sp, color = Gray400)
+                    }
                     Spacer(Modifier.height(12.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         SmallButton(
@@ -237,6 +247,70 @@ fun HomeScreen(
                             fontSize = 14
                         )
                     }
+                }
+            }
+
+            // Sequential progress section
+            if (sequentialProgress != null) {
+                Spacer(Modifier.height(16.dp))
+                val answered = sequentialProgress!!.first
+                val total = sequentialProgress!!.second
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("📖 顺序练习进度", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray700)
+                            Surface(shape = RoundedCornerShape(12.dp), color = Blue50) {
+                                Text("第 $answered / $total 题", fontSize = 12.sp, color = Blue600, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        val pct = if (total > 0) (answered.toFloat() / total * 100).toInt() else 0
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(8.dp).background(Gray100, RoundedCornerShape(4.dp))
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxHeight().fillMaxWidth((pct.toFloat() / 100f).coerceIn(0.02f, 1f)).background(Blue500, RoundedCornerShape(4.dp))
+                            )
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Text("完成 ${pct}%", fontSize = 11.sp, color = Gray400, modifier = Modifier.align(Alignment.End))
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // Countdown section
+            Spacer(Modifier.height(16.dp))
+            var countdownTime by remember { mutableStateOf(System.currentTimeMillis()) }
+            LaunchedEffect(Unit) {
+                while(true) {
+                    delay(60000L)
+                    countdownTime = System.currentTimeMillis()
+                }
+            }
+            val examInfo = remember(countdownTime) { ExamCountdown.get() }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(examInfo.bgColor)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(examInfo.icon, fontSize = 22.sp)
+                        Spacer(Modifier.width(10.dp))
+                        Text(examInfo.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Gray800)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text(examInfo.message, fontSize = 12.sp, color = Gray500, lineHeight = 18.sp)
                 }
             }
 

@@ -1,0 +1,48 @@
+#!/bin/bash
+# ─────────────────────────────────────────────────────
+#  pre-commit hook: 检查代码变更时 CHANGELOG 是否已更新
+# ─────────────────────────────────────────────────────
+# 安装: git config core.hooksPath .githooks
+# ─────────────────────────────────────────────────────
+
+echo ""
+echo "🔍 [pre-commit] 检查版本号和 CHANGELOG..."
+
+# 1. 检测本次是否有代码变更
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(kt|java|xml|kts|gradle|pro|png|sh)$' || true)
+
+if [ -z "$STAGED" ]; then
+    echo "✅ [pre-commit] 无代码变更，跳过版本检查"
+    exit 0
+fi
+
+# 2. 从 build.gradle.kts 读取当前版本号
+CURRENT_VERSION=$(grep 'versionName' kotlin-quiz/app/build.gradle.kts 2>/dev/null | sed 's/.*"\(.*\)".*/\1/')
+if [ -z "$CURRENT_VERSION" ]; then
+    echo "⚠️  [pre-commit] 无法读取版本号，跳过检查"
+    exit 0
+fi
+
+# 3. 检查 CHANGELOG.md 是否已包含当前版本号
+if grep -q "^## \[$CURRENT_VERSION\]" CHANGELOG.md 2>/dev/null; then
+    echo "✅ [pre-commit] CHANGELOG 已包含 $CURRENT_VERSION"
+else
+    echo "❌ [pre-commit] 检测到代码变更，但 CHANGELOG.md 未更新！"
+    echo "   → 当前版本: $CURRENT_VERSION"
+    echo "   → 请在 CHANGELOG.md 顶部添加："
+    echo "  ## [$CURRENT_VERSION] — $(date "+%Y-%m-%d %H:%M")"
+    echo ""
+    echo "  如需忽略: git commit --no-verify"
+    exit 1
+fi
+
+# 4. 温馨提醒：版本号是否真变了
+BUILD_CODE=$(grep 'versionCode' kotlin-quiz/app/build.gradle.kts 2>/dev/null | sed 's/.*versionCode\s*=\s*\([0-9]*\).*/\1/')
+LAST_CODE=$(git show HEAD:kotlin-quiz/app/build.gradle.kts 2>/dev/null | grep 'versionCode' | sed 's/.*versionCode\s*=\s*\([0-9]*\).*/\1/' || echo "unknown")
+
+if [ "$BUILD_CODE" = "$LAST_CODE" ]; then
+    echo "⚠️  [pre-commit] 提示: versionCode ($BUILD_CODE) 未变更，可能忘了更新版本号"
+fi
+
+echo "✅ [pre-commit] 检查通过"
+exit 0

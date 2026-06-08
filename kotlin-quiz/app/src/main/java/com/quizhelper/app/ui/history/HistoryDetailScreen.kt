@@ -18,6 +18,8 @@ import com.quizhelper.app.data.model.*
 import com.quizhelper.app.ui.components.*
 import com.quizhelper.app.ui.theme.*
 import com.quizhelper.app.util.TimeUtils
+import com.quizhelper.app.util.ShareUtil
+import com.quizhelper.app.util.Encouragement
 
 @Composable
 fun HistoryDetailScreen(
@@ -67,14 +69,36 @@ fun HistoryDetailScreen(
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    if (r.mode == "exam") "考试详情" else "练习详情",
-                    fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Gray800)
-                Text(
-                    TimeUtils.formatTimestampFull(r.timestamp),
-                    fontSize = 12.sp,
-                    color = Gray400
-                )
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            if (r.mode == "exam") "考试详情" else "练习详情",
+                            fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Gray800)
+                        if (r.mode == "exam") {
+                            SmallButton(
+                                text = "📤 分享",
+                                onClick = {
+                                    ShareUtil.shareExamResult(
+                                        context = navController.context,
+                                        score = r.score,
+                                        maxScore = r.maxScore ?: 100.0,
+                                        correctRate = if (r.totalCount > 0) (r.correctCount.toDouble() / r.totalCount * 100) else 0.0,
+                                        correctCount = r.correctCount,
+                                        totalCount = r.totalCount,
+                                        durationSeconds = r.duration,
+                                        isPass = r.score >= 80
+                                    )
+                                },
+                                containerColor = Purple600,
+                                textColor = White,
+                                fontSize = 12
+                            )
+                        }
+                    }
+                    Text(
+                        TimeUtils.formatTimestampFull(r.timestamp),
+                        fontSize = 12.sp,
+                        color = Gray400
+                    )
                 Spacer(Modifier.height(16.dp))
 
                 Row(
@@ -87,7 +111,7 @@ fun HistoryDetailScreen(
                             "${r.score.toInt()} 分",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (r.score >= 60) Green600 else Red500
+                            color = if (r.score >= 80) Green600 else Red500
                         )
                         Text("得分", fontSize = 11.sp, color = Gray400)
                     }
@@ -98,7 +122,7 @@ fun HistoryDetailScreen(
                             "${rate}%",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (rate >= 60) Green600 else Red500
+                            color = if (rate >= 80) Green600 else Red500
                         )
                         Text("正确率", fontSize = 11.sp, color = Gray400)
                     }
@@ -202,7 +226,7 @@ fun HistoryDetailScreen(
                     )
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(10.dp),
                         verticalAlignment = Alignment.Top
                     ) {
                         // Icon
@@ -238,7 +262,7 @@ fun HistoryDetailScreen(
                             )
 
                             if (question != null) {
-                                Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(4.dp))
                                 val options = question.getOptionsList()
                                 val correctAns = question.getAnswerList()
                                 val userAns = detail.getUserAnswerList()
@@ -246,29 +270,33 @@ fun HistoryDetailScreen(
                                 options.forEachIndexed { idx, opt ->
                                     val isCorrectOpt = correctAns.contains(idx)
                                     val isWrongUser = userAns.contains(idx) && !isCorrectOpt
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .background(
-                                                when {
-                                                    isCorrectOpt -> Green50
-                                                    isWrongUser -> Red50
-                                                    else -> androidx.compose.ui.graphics.Color.Transparent
-                                                },
-                                                RoundedCornerShape(4.dp)
-                                            )
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    Surface(
+                                        color = when {
+                                            isCorrectOpt -> Green50
+                                            isWrongUser -> Red50
+                                            else -> androidx.compose.ui.graphics.Color.Transparent
+                                        },
+                                        shape = RoundedCornerShape(4.dp),
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp)
                                     ) {
-                                        Text(
-                                            "${('A' + idx)}. $opt",
-                                            fontSize = 13.sp,
-                                            color = if (isCorrectOpt || isWrongUser) Gray700 else Gray500
-                                        )
-                                        if (isCorrectOpt) {
-                                            Text(" ✓", color = Green500, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                        }
-                                        if (isWrongUser) {
-                                            Text(" ✗ 你的选择", color = Red500, fontSize = 12.sp)
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                if (opt.isBlank()) "${('A' + idx)}. (空)" else "${('A' + idx)}. $opt",
+                                                fontSize = 13.sp,
+                                                color = if (isCorrectOpt || isWrongUser) Gray700 else Gray500,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            if (isCorrectOpt) {
+                                                Spacer(Modifier.width(4.dp))
+                                                Text("\u2713", color = Green500, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
+                                            if (isWrongUser) {
+                                                Spacer(Modifier.width(4.dp))
+                                                Text("\u2717", color = Red500, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
                                         }
                                     }
                                 }
@@ -280,7 +308,7 @@ fun HistoryDetailScreen(
                                         shape = RoundedCornerShape(8.dp),
                                         colors = CardDefaults.cardColors(containerColor = Blue50.copy(alpha = 0.5f))
                                     ) {
-                                        Column(Modifier.padding(12.dp)) {
+                                        Column(Modifier.padding(8.dp)) {
                                             Text("💡 解析", fontSize = 11.sp, color = Blue500, fontWeight = FontWeight.Medium)
                                             Text(
                                                 question.analysis,

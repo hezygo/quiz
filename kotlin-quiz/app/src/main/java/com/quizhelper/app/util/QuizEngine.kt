@@ -65,7 +65,7 @@ object QuizEngine {
         val correctCount = countCorrect(session)
         val points = correctCount.toDouble()
         val maxPoints = session.questions.size.toDouble()
-        val correctRate = if (answeredCount > 0) (correctCount.toDouble() / answeredCount * 100).roundToInt().toDouble() else 0.0
+        val correctRate = if (session.questions.size > 0) (correctCount.toDouble() / session.questions.size * 100).roundToInt().toDouble() else 0.0
         val duration = ((session.endTime ?: System.currentTimeMillis()) - session.startTime) / 1000
         return ScoreResult(session.questions.size, answeredCount, correctCount, points, maxPoints, correctRate, duration.toInt())
     }

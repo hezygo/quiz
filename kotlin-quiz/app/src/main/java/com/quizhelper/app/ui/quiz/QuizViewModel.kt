@@ -205,8 +205,9 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun saveProgress() {
-        if (_session?.mode == QuizMode.PRACTICE && questionSource == "all") {
-            _session?.let { PracticeProgressStore.saveSession(getApplication(), it) }
+        val s = _session ?: return
+        if (s.mode == QuizMode.PRACTICE && questionSource == "all" && !s.randomOrder) {
+            PracticeProgressStore.saveSession(getApplication(), s)
         }
     }
 
@@ -214,7 +215,6 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
         val s = _session ?: return
         _currentQuestion.value = QuizEngine.getCurrentQuestion(s)
         _progress.value = QuizEngine.getProgress(s)
-
         val q = QuizEngine.getCurrentQuestion(s)
         if (q != null) {
             val saved = s.answers[q.id]
